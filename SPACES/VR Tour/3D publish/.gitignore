@@ -1,0 +1,3 @@
+# Local/exported desktop build artifacts (too large for normal GitHub push)
+*.exe
+*.tar.bz2

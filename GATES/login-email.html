@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stacks Hub Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 80px;
+            width: 100%;
+            height: 100vh;
+            padding: 40px;
+            position: relative;
+        }
+
+        .image-panel {
+            flex: 0 0 auto;
+        }
+
+        .image-card {
+            width: 430px;
+            height: 540px;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .login-panel {
+            flex: 0 0 auto;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .login-content {
+            text-align: center;
+        }
+
+        .login-content h1 {
+            font-size: 44px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+
+        .login-content .subtitle {
+            font-size: 18px;
+            font-weight: 400;
+            color: #a0a0a0;
+            margin-bottom: 40px;
+            line-height: 1.5;
+        }
+
+        .login-button {
+            width: 100%;
+            max-width: 400px;
+            padding: 16px 32px;
+            background-color: transparent;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            font-size: 18px;
+            font-weight: 500;
+            border: 2px solid #ffffff;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin: 0 auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        .login-button:hover {
+            background-color: #ffffff;
+            color: #000000;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(255, 255, 255, 0.2);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .helper-text {
+            font-size: 15px;
+            font-weight: 400;
+            color: #6a6a6a;
+            margin-top: 16px;
+            line-height: 1.4;
+        }
+
+        .disclaimer {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            font-weight: 400;
+            color: #4a4a4a;
+            text-align: center;
+            max-width: 600px;
+            padding: 0 20px;
+            line-height: 1.4;
+        }
+
+        .privy-overlay {
+            position: fixed;
+            inset: 0;
+            display: block;
+            background: rgba(0, 0, 0, 0.62);
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.22s ease, visibility 0.22s step-end;
+        }
+
+        .privy-overlay.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transition: opacity 0.22s ease;
+        }
+
+        .privy-overlay-panel {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            inset: 0;
+            background: rgba(7, 9, 14, 0.96);
+        }
+
+        .privy-overlay-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 30px;
+            height: 30px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: rgba(0, 0, 0, 0.45);
+            color: #fff;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .privy-overlay-frame {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            background: rgba(7, 9, 14, 0.98);
+            position: relative;
+            z-index: 1;
+            opacity: 1;
+            transition: opacity 0.18s ease;
+        }
+
+        .privy-overlay.loading .privy-overlay-frame {
+            opacity: 0;
+        }
+
+        .privy-overlay-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+
+        .privy-overlay.loading .privy-overlay-spinner {
+            opacity: 1;
+        }
+
+        .privy-overlay-spinner::after {
+            content: '';
+            display: block;
+            width: 36px;
+            height: 36px;
+            border: 3px solid rgba(255, 255, 255, 0.15);
+            border-top-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            animation: privy-spin 0.7s linear infinite;
+        }
+
+        @keyframes privy-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes slideFromLeft {
+            from { opacity: 0; transform: translateX(-32px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes slideFromRight {
+            from { opacity: 0; transform: translateX(32px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .image-panel {
+            animation: slideFromLeft 600ms cubic-bezier(0.4, 0, 0.2, 1) 100ms both;
+        }
+
+        .login-panel {
+            animation: slideFromRight 600ms cubic-bezier(0.4, 0, 0.2, 1) 200ms both;
+        }
+
+        .disclaimer {
+            animation: fadeSlideUp 500ms ease 500ms both;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+                padding: 40px 24px;
+                gap: 40px;
+                overflow-y: auto;
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .image-card {
+                width: 350px;
+                height: 440px;
+            }
+
+            .login-content h1 {
+                font-size: 40px;
+            }
+
+            .login-content .subtitle {
+                font-size: 17px;
+                margin-bottom: 32px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 32px 20px;
+                gap: 32px;
+            }
+
+            .image-card {
+                width: 100%;
+                max-width: 320px;
+                height: 400px;
+            }
+
+            .login-content h1 {
+                font-size: 36px;
+            }
+
+            .login-content .subtitle {
+                font-size: 16px;
+                margin-bottom: 28px;
+            }
+
+            .login-button {
+                font-size: 17px;
+                padding: 14px 28px;
+            }
+
+            .helper-text {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 24px 16px;
+            }
+
+            .image-card {
+                max-width: 280px;
+                height: 350px;
+                border-radius: 20px;
+            }
+
+            .login-content h1 {
+                font-size: 32px;
+            }
+
+            .login-button {
+                font-size: 16px;
+                padding: 12px 24px;
+            }
+        }
+
+        @media (min-width: 1920px) {
+            .container {
+                gap: 120px;
+            }
+
+            .image-card {
+                width: 480px;
+                height: 600px;
+            }
+
+            .login-content h1 {
+                font-size: 52px;
+            }
+
+            .login-content .subtitle {
+                font-size: 20px;
+            }
+
+            .login-button {
+                font-size: 20px;
+                padding: 18px 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="image-panel">
+            <div class="image-card">
+                <img
+                    src="./assets/images/login-portrait.jpg"
+                    alt="Character Login"
+                    loading="eager"
+                    fetchpriority="high"
+                    decoding="async"
+                    referrerpolicy="no-referrer"
+                >
+            </div>
+        </div>
+
+        <div class="login-panel">
+            <div class="login-content">
+                <h1>Sign in</h1>
+                <p class="subtitle">Email authentication with Bitcoin wallet creation</p>
+
+                <button id="login-link" class="login-button" type="button" onclick="handleLoginClick(event)">
+                    Login with Email
+                </button>
+
+                <p class="helper-text" id="login-status">You'll receive an OTP code via email to authenticate</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="disclaimer">
+        *Demo prototype for educational purposes only. Not financial advice. Use testnet/sandbox environments only.
+    </div>
+
+    <div id="privy-overlay" class="privy-overlay" aria-hidden="true">
+        <div class="privy-overlay-panel">
+            <button id="privy-overlay-close" class="privy-overlay-close" type="button" aria-label="Close login">&times;</button>
+            <div class="privy-overlay-spinner" aria-label="Loading"></div>
+            <iframe id="privy-overlay-frame" class="privy-overlay-frame" title="Privy Login" allow="clipboard-read; clipboard-write; publickey-credentials-get *"></iframe>
+        </div>
+    </div>
+
+    <script>
+        function safeStorageGet(key) {
+            try {
+                return localStorage.getItem(key);
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function getPrivyBridgeBaseUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const queryValue = params.get('privyBridge');
+            const storedValue = safeStorageGet('STACKS_PRIVY_BRIDGE_URL');
+            const fallbackValue = 'http://127.0.0.1:3001';
+            let candidate = queryValue || storedValue || fallbackValue;
+
+            const isLocalHost = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+            const isHttp = window.location.protocol === 'http:' || window.location.protocol === 'https:';
+            if (isHttp && isLocalHost && window.location.port !== '3001' && !queryValue && !storedValue) {
+                candidate = 'http://127.0.0.1:3001';
+            }
+
+            if (isHttp && window.location.port === '3001' && !queryValue && !storedValue) {
+                candidate = window.location.origin;
+            }
+
+            try {
+                const parsed = new URL(candidate);
+                if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+                    return parsed.origin;
+                }
+            } catch (error) {
+                console.warn('Invalid Privy bridge URL:', error);
+            }
+
+            return null;
+        }
+
+        function getWebsiteBaseUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const queryValue = params.get('websiteBase');
+            const storedValue = safeStorageGet('STACKS_WEBSITE_BASE_URL');
+            const fallbackValue = 'http://127.0.0.1:8080';
+            const candidate = queryValue || storedValue || fallbackValue;
+
+            try {
+                const parsed = new URL(candidate);
+                if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+                    return parsed.origin;
+                }
+            } catch (error) {
+                console.warn('Invalid website base URL:', error);
+            }
+
+            return fallbackValue;
+        }
+
+        function openPrivyOverlay() {
+            const baseForScroller = window.location.protocol === 'file:' ? getWebsiteBaseUrl() : window.location.href;
+            const scrollerUrl = new URL('../PAGES/single-scroll.html', baseForScroller);
+            const privyBridgeBaseUrl = getPrivyBridgeBaseUrl();
+
+            if (!privyBridgeBaseUrl) {
+                const loginStatus = document.getElementById('login-status');
+                if (loginStatus) {
+                    loginStatus.textContent = 'Privy login service is unavailable. Start the Privy app on :3001.';
+                }
+                return;
+            }
+
+            const bridgeLoginUrl = new URL('/gate-overlay', privyBridgeBaseUrl);
+            bridgeLoginUrl.searchParams.set('entry', 'gate');
+            bridgeLoginUrl.searchParams.set('autologin', '1');
+            bridgeLoginUrl.searchParams.set('redirect', scrollerUrl.toString());
+            bridgeLoginUrl.searchParams.set('parentOrigin', window.location.origin);
+            bridgeLoginUrl.searchParams.set('forceLogin', '1');
+            bridgeLoginUrl.searchParams.set('t', String(Date.now()));
+
+            const overlay = document.getElementById('privy-overlay');
+            const frame = document.getElementById('privy-overlay-frame');
+            if (!overlay || !frame) {
+                const loginStatus = document.getElementById('login-status');
+                if (loginStatus) {
+                    loginStatus.textContent = 'Unable to open Privy overlay in this browser.';
+                }
+                return;
+            }
+
+            overlay.classList.add('loading');
+            frame.src = bridgeLoginUrl.toString();
+            overlay.classList.add('active');
+            overlay.setAttribute('aria-hidden', 'false');
+        }
+
+        function closePrivyOverlay() {
+            const overlay = document.getElementById('privy-overlay');
+            const frame = document.getElementById('privy-overlay-frame');
+            if (!overlay || !frame) return;
+            overlay.classList.remove('active');
+            overlay.classList.remove('loading');
+            overlay.setAttribute('aria-hidden', 'true');
+            frame.src = 'about:blank';
+        }
+
+        function handleLoginClick(event) {
+            if (event) {
+                event.preventDefault();
+            }
+            const loginStatus = document.getElementById('login-status');
+            if (loginStatus) {
+                loginStatus.textContent = 'Opening secure login...';
+            }
+            openPrivyOverlay();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const loginLink = document.getElementById('login-link');
+            const loginStatus = document.getElementById('login-status');
+            if (!loginLink) return;
+
+            const privyBridgeBaseUrl = getPrivyBridgeBaseUrl();
+            if (privyBridgeBaseUrl) {
+                const preconnect = document.createElement('link');
+                preconnect.rel = 'preconnect';
+                preconnect.href = privyBridgeBaseUrl;
+                document.head.appendChild(preconnect);
+            }
+
+            loginLink.addEventListener('click', handleLoginClick);
+
+            const closeButton = document.getElementById('privy-overlay-close');
+            if (closeButton) {
+                closeButton.addEventListener('click', closePrivyOverlay);
+            }
+
+            const overlay = document.getElementById('privy-overlay');
+            if (overlay) {
+                overlay.addEventListener('click', function (event) {
+                    if (event.target === overlay) {
+                        closePrivyOverlay();
+                    }
+                });
+            }
+
+            window.addEventListener('message', function (event) {
+                const allowedOrigin = getPrivyBridgeBaseUrl();
+                if (!allowedOrigin || event.origin !== allowedOrigin) return;
+
+                const data = event.data || {};
+                if (data.type === 'STACKS_PRIVY_FRAME_READY') {
+                    const overlayNode = document.getElementById('privy-overlay');
+                    if (overlayNode) {
+                        overlayNode.classList.remove('loading');
+                    }
+                    if (loginStatus) {
+                        loginStatus.textContent = 'Opening secure login...';
+                    }
+                    return;
+                }
+
+                if (data.type === 'STACKS_PRIVY_LOGIN_STARTED') {
+                    if (loginStatus) {
+                        loginStatus.textContent = 'Opening secure login...';
+                    }
+                    return;
+                }
+
+                if (data.type === 'STACKS_PRIVY_AUTH_SUCCESS') {
+                    const baseForScroller = window.location.protocol === 'file:' ? getWebsiteBaseUrl() : window.location.href;
+                    const fallbackRedirectUrl = new URL('../PAGES/single-scroll.html', baseForScroller).toString();
+                    const redirectUrl = (data.redirect && typeof data.redirect === 'string') ? data.redirect : fallbackRedirectUrl;
+
+                    closePrivyOverlay();
+                    if (loginStatus) {
+                        loginStatus.textContent = 'Signed in. Preparing wallet...';
+                    }
+                    window.location.assign(redirectUrl);
+                    return;
+                }
+
+                if (data.type === 'STACKS_PRIVY_WALLET_STATUS') {
+                    if (loginStatus) {
+                        if (data.provisioning) {
+                            loginStatus.textContent = 'Creating your Bitcoin wallet...';
+                        } else if (data.error && typeof data.error === 'string') {
+                            loginStatus.textContent = 'Wallet setup issue — retrying...';
+                        } else if (data.hasBitcoinWallet) {
+                            loginStatus.textContent = 'Wallet ready. Almost there...';
+                        } else {
+                            loginStatus.textContent = 'Signed in. Preparing wallet...';
+                        }
+                    }
+                    return;
+                }
+
+                if (data.type === 'STACKS_PRIVY_AUTH_CANCEL') {
+                    closePrivyOverlay();
+                    if (loginStatus) {
+                        loginStatus.textContent = 'Login cancelled. Click to try again.';
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modular Reality Template</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            padding: 60px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 60px;
+            align-items: center;
+            margin-bottom: 80px;
+        }
+
+        .hero-content h1 {
+            font-size: 48px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 24px;
+        }
+
+        .hero-content .description {
+            font-size: 18px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 16px;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border-radius: 28px;
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #f4c542;
+            color: #1a1a1a;
+        }
+
+        .btn-primary:hover {
+            background: #e6b832;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #fff;
+            color: #1a1a1a;
+            border: 2px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #f8f8f8;
+            transform: translateY(-2px);
+        }
+
+        .hero-image-card {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            height: 400px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        }
+
+        .hero-image-card .media-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .hero-image-card img,
+        .hero-image-card video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .hero-image-card img {
+            display: block;
+        }
+
+        .hero-image-card video {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .hero-image-card:hover img {
+            display: none;
+        }
+
+        .hero-image-card:hover video {
+            display: block;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 40px;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            color: white;
+        }
+
+        .hero-overlay h2 {
+            font-size: 48px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .hero-overlay p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        /* Identity Layer Section */
+        .identity-section {
+            margin-bottom: 60px;
+        }
+
+        .section-header {
+            margin-bottom: 32px;
+        }
+
+        .section-header h2 {
+            font-size: 36px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+        }
+
+        .section-header .description {
+            font-size: 18px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .environment-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+
+        .environment-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        .card-media {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            overflow: hidden;
+            background: #1a1a1a;
+        }
+
+        .card-media img,
+        .card-media video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .card-media img {
+            display: block;
+        }
+
+        .card-media video {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .environment-card:hover .card-media img {
+            display: none;
+        }
+
+        .environment-card:hover .card-media video {
+            display: block;
+        }
+
+        .card-content {
+            padding: 24px;
+        }
+
+        .card-tags {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 6px 14px;
+            border-radius: 14px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .tag-primary {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .tag-secondary {
+            background: #e7f3ff;
+            color: #004085;
+        }
+
+        .tag-tertiary {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .tag-quaternary {
+            background: #ffe4e6;
+            color: #721c24;
+        }
+
+        .card-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+        }
+
+        .card-description {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .pool-cta {
+            margin-top: 14px;
+            padding: 10px 14px;
+            border: 1px solid #f4c542;
+            border-radius: 999px;
+            background: #fff8d7;
+            color: #5f4800;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .pool-cta:hover {
+            background: #f4c542;
+            color: #1a1a1a;
+        }
+
+        @media (max-width: 1024px) {
+            .hero-section {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .hero-content h1 {
+                font-size: 36px;
+            }
+
+            .hero-overlay h2 {
+                font-size: 36px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-content h1 {
+                font-size: 32px;
+            }
+
+            .section-header h2 {
+                font-size: 28px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <!-- Left: Content -->
+            <div class="hero-content">
+                <h1>What This Is</h1>
+                <div class="description">
+                    <p>An alternate reality game (ARG) in an interactive networked narrative using the real world as a gameboard through transmedia narratives that may be altered by players, ideas or agents.</p>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-primary" type="button" onclick="openVrTourDemo()">Play Demo</button>
+                    <button class="btn btn-secondary" type="button">Take the Tour</button>
+                    <button class="btn btn-secondary">Connect Wallet</button>
+                </div>
+            </div>
+
+            <!-- Right: Hero Image -->
+            <div class="hero-image-card">
+                <div class="media-wrapper">
+                    <img src="./assets/images/curated-hero.jpg" alt="Learn by Doing">
+                    <video loop muted playsinline>
+                        <source src="placeholder-hero.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="hero-overlay">
+                    <h2>Onboard</h2>
+                    <p>Learn,Build,Ship and Evolve</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Modular Reality Section -->
+        <section class="identity-section">
+            <div class="section-header">
+                <h2>Agentic Worlds</h2>
+                <div class="description">
+                    Modular,Composable,Stakable.
+                </div>
+            </div>
+
+            <!-- Environment Cards Grid -->
+            <div class="cards-grid">
+                <!-- Card 1: Reality 1 -->
+                <div class="environment-card" id="pool1-card" role="button" tabindex="0" aria-label="Open POOL 1 playable scene">
+                    <div class="card-media">
+                        <img src="./assets/images/pool-1.jpg" alt="Reality 1">
+                        <video loop muted playsinline>
+                            <source src="placeholder-sandbox.mp4" type="video/mp4">
+                        </video>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-tags">
+                            <span class="tag tag-primary">open</span>
+                            <span class="tag tag-secondary">CH-1</span>
+                        </div>
+                        <h3 class="card-title">POOL 1</h3>
+                        <p class="card-description">DnD on Bitcoin</p>
+                        <button class="pool-cta" type="button" aria-label="Try POOL 1 playable scene">Enter POOL 1</button>
+                    </div>
+                </div>
+
+                <!-- Card 2: Reality 2 -->
+                <div class="environment-card">
+                    <div class="card-media">
+                        <img src="./assets/images/pool-2.jpg" alt="Reality 2">
+                        <video loop muted playsinline>
+                            <source src="placeholder-station.mp4" type="video/mp4">
+                        </video>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-tags">
+                            <span class="tag tag-secondary">CH-3</span>
+                            <span class="tag tag-secondary">CH- 4</span>
+                        </div>
+                        <h3 class="card-title">POOL 2 </h3>
+                        <p class="card-description">BTCU-Bitcoin University</p>
+                    </div>
+                </div>
+
+                <!-- Card 3: Reality 3 -->
+                <div class="environment-card">
+                    <div class="card-media">
+                        <img src="./assets/images/pool-3.jpg" alt="POOL 3 world building on Bitcoin">
+                        <video loop muted playsinline>
+                            <source src="placeholder-mcdonaldz.mp4" type="video/mp4">
+                        </video>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-tags">
+                            <span class="tag tag-tertiary">CH-5</span>
+                            <span class="tag tag-secondary">CH-6</span>
+                        </div>
+                        <h3 class="card-title">POOL 3</h3>
+                        <p class="card-description">Robots funding new media art.</p>
+                    </div>
+                </div>
+
+                <!-- Card 4: Reality 4 -->
+                <div class="environment-card">
+                    <div class="card-media">
+                        <img src="./assets/images/pool-4.jpg" alt="POOL 4 agentic world">
+                        <video loop muted playsinline>
+                            <source src="placeholder-genesis.mp4" type="video/mp4">
+                        </video>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-tags">
+                            <span class="tag tag-quaternary">CH-7</span>
+                            <span class="tag tag-secondary">CH-8</span>
+                        </div>
+                        <h3 class="card-title">POOL 4</h3>
+                        <p class="card-description">Interactive Fiction ARG</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const DEMO_OPEN_EVENT = 'STACKSHUB_OPEN_DEMO';
+        const VR_TOUR_DEMO_URL = '../SPACES/VR Tour/3D publish/index.htm';
+
+        function launchDemoOnSite(payload) {
+            try {
+                if (window.top && window.top !== window) {
+                    window.top.postMessage({ type: DEMO_OPEN_EVENT, ...payload }, window.location.origin);
+                    return;
+                }
+            } catch (error) {
+                console.warn('Unable to open in parent overlay:', error);
+            }
+            window.location.href = payload.url;
+        }
+
+        function openVrTourDemo() {
+            launchDemoOnSite({
+                url: VR_TOUR_DEMO_URL,
+                title: 'VR Tour Demo',
+                closeLabel: 'Exit VR Tour'
+            });
+        }
+
+        const pool1Card = document.getElementById('pool1-card');
+        if (pool1Card) {
+            const pool1Cta = pool1Card.querySelector('.pool-cta');
+            const openPool1 = () => {
+                window.location.href = '../WORLDS/POOL 1/remixed-c33e575f.html';
+            };
+
+            pool1Card.style.cursor = 'pointer';
+            pool1Card.addEventListener('click', openPool1);
+            pool1Card.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    openPool1();
+                }
+            });
+
+            if (pool1Cta) {
+                pool1Cta.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    openPool1();
+                });
+            }
+        }
+
+        // Auto-play videos on hover
+        document.querySelectorAll('.hero-image-card, .environment-card').forEach(card => {
+            const video = card.querySelector('video');
+            if (video) {
+                card.addEventListener('mouseenter', () => {
+                    video.play();
+                });
+                card.addEventListener('mouseleave', () => {
+                    video.pause();
+                    video.currentTime = 0;
+                });
+            }
+        });
+    </script>
+</body>
+</html>

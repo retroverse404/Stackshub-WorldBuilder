@@ -1,0 +1,28 @@
+# OS/editor noise
+.DS_Store
+Thumbs.db
+
+# Node / Next build artifacts
+**/node_modules/
+**/.next/
+**/.turbo/
+**/dist/
+**/build/
+
+# Logs and runtime artifacts
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.env.local
+.env.*.local
+
+# Local runtime/temp files
+.vercel/
+.cache/
+coverage/
+/tmp/
+
+# Preserve flattened embedded repos as backups, but don't commit them
+**/.git.embedded-backup/

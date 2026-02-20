@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stacks Hub - Single Scroll</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            color: #111;
+            overflow-y: scroll;
+            transition: background 600ms ease;
+        }
+
+        body.ready {
+            background: #ffffff;
+        }
+
+        .flow-shell {
+            width: 100%;
+            opacity: 0;
+            transition: opacity 260ms ease;
+        }
+
+        body.ready .flow-shell {
+            opacity: 1;
+        }
+
+        .page-frame {
+            width: 100%;
+            border: 0;
+            display: block;
+            overflow: hidden;
+            background: #fff;
+            min-height: 100vh;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 260ms ease, transform 260ms ease;
+        }
+
+        .page-frame.loaded {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .demo-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: rgba(7, 9, 12, 0.92);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 200ms ease, visibility 200ms ease;
+        }
+
+        .demo-overlay.open {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .demo-shell {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            background: #05070a;
+        }
+
+        .demo-toolbar {
+            min-height: 56px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: rgba(10, 14, 20, 0.96);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+        }
+
+        .demo-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #f3f5f8;
+            letter-spacing: 0.02em;
+        }
+
+        .demo-close {
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border-radius: 10px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .demo-close:hover {
+            background: rgba(255, 255, 255, 0.14);
+        }
+
+        .demo-frame {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            background: #000;
+            flex: 1;
+        }
+
+        .privy-bridge-frame {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            width: 1px;
+            height: 1px;
+            border: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .auth-pill {
+            position: fixed;
+            right: 14px;
+            bottom: 14px;
+            z-index: 11000;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.24);
+            background: rgba(9, 12, 18, 0.86);
+            color: #f2f5f8;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            padding: 8px 12px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <main class="flow-shell">
+        <iframe
+            class="page-frame"
+            src="./page-01-hero.html"
+            title="Page 1"
+            loading="eager"
+            onload="resizeFrame(this)"
+        ></iframe>
+
+        <iframe
+            class="page-frame"
+            src="./page-02-curated-worlds.html"
+            title="Page 2"
+            loading="lazy"
+            onload="resizeFrame(this)"
+        ></iframe>
+
+        <iframe
+            class="page-frame"
+            src="./page-03-explore-worlds.html"
+            title="Page 3"
+            loading="lazy"
+            onload="resizeFrame(this)"
+        ></iframe>
+    </main>
+
+    <section id="demoOverlay" class="demo-overlay" aria-hidden="true">
+        <div class="demo-shell">
+            <header class="demo-toolbar">
+                <div id="demoTitle" class="demo-title">Demo</div>
+                <button id="demoCloseButton" class="demo-close" type="button">Exit Agent View</button>
+            </header>
+            <iframe
+                id="demoFrame"
+                class="demo-frame"
+                title="Immersive demo"
+                allow="autoplay; fullscreen; xr-spatial-tracking; gyroscope; accelerometer"
+                allowfullscreen
+            ></iframe>
+        </div>
+    </section>
+    <div id="authPill" class="auth-pill" aria-live="polite">Auth: Guest</div>
+
+    <script>
+        const DEMO_OPEN_EVENT = 'STACKSHUB_OPEN_DEMO';
+        const DEMO_CLOSE_EVENT = 'STACKSHUB_CLOSE_DEMO';
+        const demoOverlay = document.getElementById('demoOverlay');
+        const demoFrame = document.getElementById('demoFrame');
+        const demoTitle = document.getElementById('demoTitle');
+        const demoCloseButton = document.getElementById('demoCloseButton');
+        const authPill = document.getElementById('authPill');
+        const originalOverflow = document.body.style.overflow;
+        const observedFrames = new WeakSet();
+        const resizeRafByFrame = new WeakMap();
+        let privyBridgeOrigin = null;
+
+        function setAuthPill(value) {
+            if (!authPill) return;
+            authPill.textContent = 'Auth: ' + value;
+        }
+
+        function sanitizeOrigin(rawOrigin) {
+            if (!rawOrigin) return null;
+            try {
+                const parsed = new URL(rawOrigin);
+                if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+                    return parsed.origin;
+                }
+            } catch (_error) {
+                return null;
+            }
+            return null;
+        }
+
+        function getPrivyBridgeOrigin() {
+            const params = new URLSearchParams(window.location.search);
+            const queryValue = params.get('privyBridge');
+            const storedValue = localStorage.getItem('STACKS_PRIVY_BRIDGE_URL');
+            const fallbackValue = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost')
+                ? 'http://127.0.0.1:3001'
+                : null;
+            return sanitizeOrigin(queryValue) || sanitizeOrigin(storedValue) || sanitizeOrigin(fallbackValue);
+        }
+
+        function openPrivyPopupLogin() {
+            const bridgeOrigin = getPrivyBridgeOrigin();
+            if (!bridgeOrigin) return false;
+            privyBridgeOrigin = bridgeOrigin;
+            localStorage.setItem('STACKS_PRIVY_BRIDGE_URL', bridgeOrigin);
+
+            const popupReturnUrl = new URL(window.location.href);
+            popupReturnUrl.searchParams.delete('stxAuth');
+            popupReturnUrl.searchParams.delete('privyBridge');
+            popupReturnUrl.searchParams.set('authPopupDone', '1');
+
+            const popupUrl = new URL('/gates-login', bridgeOrigin);
+            popupUrl.searchParams.set('entry', 'experience');
+            popupUrl.searchParams.set('forceLogin', '1');
+            popupUrl.searchParams.set('redirect', popupReturnUrl.toString());
+
+            const popup = window.open(popupUrl.toString(), 'stacks_privy_login');
+
+            if (!popup) {
+                setAuthPill('Popup Blocked');
+                return false;
+            }
+
+            localStorage.setItem('STACKS_PRIVY_AUTH_STATE', 'connecting');
+            setAuthPill('Connecting');
+            return true;
+        }
+
+        function cleanupBackgroundAuthQueryParams() {
+            const currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.delete('stxAuth');
+            currentUrl.searchParams.delete('privyBridge');
+            currentUrl.searchParams.delete('authPopupDone');
+            window.history.replaceState({}, '', currentUrl.toString());
+        }
+
+        function startBackgroundPrivyAuth() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('stxAuth') !== 'bg') return;
+
+            privyBridgeOrigin = getPrivyBridgeOrigin();
+            if (!privyBridgeOrigin) {
+                cleanupBackgroundAuthQueryParams();
+                return;
+            }
+
+            localStorage.setItem('STACKS_PRIVY_BRIDGE_URL', privyBridgeOrigin);
+            localStorage.setItem('STACKS_PRIVY_AUTH_STATE', 'connecting');
+            setAuthPill('Connecting');
+
+            const bridgeFrame = document.createElement('iframe');
+            bridgeFrame.className = 'privy-bridge-frame';
+            bridgeFrame.setAttribute('aria-hidden', 'true');
+            bridgeFrame.setAttribute('tabindex', '-1');
+            bridgeFrame.title = 'Privy Background Auth';
+
+            const bridgeUrl = new URL('/gate-overlay', privyBridgeOrigin);
+            bridgeUrl.searchParams.set('entry', 'background');
+            bridgeUrl.searchParams.set('autologin', '1');
+            bridgeUrl.searchParams.set('parentOrigin', window.location.origin);
+            bridgeUrl.searchParams.set('t', String(Date.now()));
+            bridgeFrame.src = bridgeUrl.toString();
+            document.body.appendChild(bridgeFrame);
+
+            cleanupBackgroundAuthQueryParams();
+        }
+
+        function openDemoOverlay(payload) {
+            if (!payload || !payload.url) return;
+            demoTitle.textContent = payload.title || 'Immersive Demo';
+            demoCloseButton.textContent = payload.closeLabel || 'Exit Demo';
+            demoFrame.src = payload.url;
+            demoOverlay.classList.add('open');
+            demoOverlay.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDemoOverlay() {
+            demoOverlay.classList.remove('open');
+            demoOverlay.setAttribute('aria-hidden', 'true');
+            demoFrame.src = 'about:blank';
+            document.body.style.overflow = originalOverflow;
+        }
+
+        function measureFrame(frame) {
+            try {
+                const doc = frame.contentDocument || frame.contentWindow.document;
+                if (!doc) return;
+                const h = Math.max(
+                    doc.body ? doc.body.scrollHeight : 0,
+                    doc.documentElement ? doc.documentElement.scrollHeight : 0
+                );
+                frame.style.height = h + 'px';
+            } catch (err) {
+                // Same-origin expected; keep fallback if browser blocks access.
+                frame.style.height = '100vh';
+            }
+        }
+
+        function resizeFrame(frame) {
+            const existing = resizeRafByFrame.get(frame);
+            if (existing) cancelAnimationFrame(existing);
+            const rafId = requestAnimationFrame(() => {
+                measureFrame(frame);
+                resizeRafByFrame.delete(frame);
+            });
+            resizeRafByFrame.set(frame, rafId);
+        }
+
+        function attachFrameObservers(frame) {
+            if (observedFrames.has(frame)) return;
+            observedFrames.add(frame);
+
+            try {
+                const doc = frame.contentDocument || frame.contentWindow.document;
+                if (!doc) return;
+
+                const onMediaLoaded = () => resizeFrame(frame);
+                doc.querySelectorAll('img, video, iframe').forEach((el) => {
+                    el.addEventListener('load', onMediaLoaded, { passive: true });
+                    el.addEventListener('loadedmetadata', onMediaLoaded, { passive: true });
+                });
+
+                const mutationObserver = new MutationObserver(() => resizeFrame(frame));
+                mutationObserver.observe(doc.documentElement, {
+                    childList: true,
+                    subtree: true,
+                    attributes: true,
+                });
+
+                if (window.ResizeObserver) {
+                    const ro = new ResizeObserver(() => resizeFrame(frame));
+                    if (doc.body) ro.observe(doc.body);
+                    if (doc.documentElement) ro.observe(doc.documentElement);
+                }
+            } catch (_error) {
+                // If access is restricted, fallback to basic resizing only.
+            }
+        }
+
+        function handleFrameLoad(frame) {
+            frame.classList.add('loaded');
+            resizeFrame(frame);
+            attachFrameObservers(frame);
+
+            // Reveal shell as soon as first section is visible.
+            if (!document.body.classList.contains('ready')) {
+                document.body.classList.add('ready');
+            }
+        }
+
+        function resizeAllFrames() {
+            const frames = document.querySelectorAll('.page-frame');
+            frames.forEach(resizeFrame);
+        }
+
+        window.addEventListener('load', () => {
+            const frames = document.querySelectorAll('.page-frame');
+            frames.forEach((frame) => handleFrameLoad(frame));
+            resizeAllFrames();
+        });
+        window.addEventListener('resize', resizeAllFrames);
+        document.querySelectorAll('.page-frame').forEach((frame) => {
+            frame.addEventListener('load', () => handleFrameLoad(frame));
+        });
+        window.addEventListener('message', (event) => {
+            const data = event.data;
+            if (!data || !data.type) return;
+
+            if (event.origin === privyBridgeOrigin) {
+                if (data.type === 'STACKS_PRIVY_AUTH_SUCCESS') {
+                    localStorage.setItem('STACKS_PRIVY_AUTH_STATE', 'ready');
+                    setAuthPill('Ready');
+                    return;
+                }
+                if (data.type === 'STACKS_PRIVY_AUTH_CANCEL') {
+                    localStorage.setItem('STACKS_PRIVY_AUTH_STATE', 'cancelled');
+                    setAuthPill('Cancelled');
+                    return;
+                }
+            }
+
+            if (event.origin !== window.location.origin) return;
+            if (data.type === 'STACKS_PRIVY_AUTH_SUCCESS') {
+                localStorage.setItem('STACKS_PRIVY_AUTH_STATE', 'ready');
+                setAuthPill('Ready');
+                return;
+            }
+            if (data.type === DEMO_OPEN_EVENT) {
+                openDemoOverlay(data);
+                return;
+            }
+            if (data.type === DEMO_CLOSE_EVENT) {
+                closeDemoOverlay();
+            }
+        });
+        demoCloseButton.addEventListener('click', closeDemoOverlay);
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && demoOverlay.classList.contains('open')) {
+                closeDemoOverlay();
+            }
+        });
+
+        authPill.addEventListener('click', () => {
+            if (authPill.textContent !== 'Auth: Ready') {
+                openPrivyPopupLogin();
+            }
+        });
+
+        const authState = localStorage.getItem('STACKS_PRIVY_AUTH_STATE');
+        if (authState === 'ready') {
+            setAuthPill('Ready');
+        } else if (authState === 'connecting') {
+            setAuthPill('Connecting');
+        } else if (authState === 'cancelled') {
+            setAuthPill('Cancelled');
+        } else {
+            setAuthPill('Guest');
+        }
+
+        const startupParams = new URLSearchParams(window.location.search);
+        if (startupParams.get('authPopupDone') === '1') {
+            localStorage.setItem('STACKS_PRIVY_AUTH_STATE', 'ready');
+            setAuthPill('Ready');
+            try {
+                if (window.opener && !window.opener.closed) {
+                    window.opener.postMessage({ type: 'STACKS_PRIVY_AUTH_SUCCESS' }, window.location.origin);
+                    window.close();
+                }
+            } catch (_error) {
+                // Ignore cross-window messaging errors.
+            }
+            cleanupBackgroundAuthQueryParams();
+        }
+
+        startBackgroundPrivyAuth();
+    </script>
+</body>
+</html>

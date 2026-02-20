@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learn by doing - Dojo</title>
+    
+    <!-- 
+    ========================================
+    MODULAR COMPONENT STRUCTURE
+    ========================================
+    This page is built with reusable components for no-code/drag-drop systems.
+    
+    COMPONENTS IN THIS PAGE:
+    1. .video-background     - Background video layer (optional, z-index: 1)
+    2. .content-overlay      - Main content container (z-index: 2)
+    3. .arrow-icon           - SVG icon component (swappable)
+    4. .main-heading         - Text/heading component (editable)
+    5. .primary-button       - CTA button component (customizable)
+    
+    MODULAR FEATURES:
+    - Each component is self-contained
+    - Clean, semantic class names (no conflicts)
+    - Fully responsive (480px → 4K)
+    - Mix/match with other pages (Stacks Hub, Programming on Bitcoin)
+    - Video layer can be toggled on/off
+    - All components have editable properties
+    
+    FOR NO-CODE BUILDERS:
+    - Drag and drop components
+    - Swap video URLs
+    - Edit text content
+    - Customize colors/gradients
+    - Change button actions
+    - Replace arrow icon with other SVGs
+    -->
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #000000;
+        }
+
+        /* Video Background Layer */
+        .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .video-background video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.6; /* ADJUST THIS: 0.3-0.5 = darker/more readable, 0.7-0.9 = brighter video */
+        }
+
+        /* Content Overlay - Main Container */
+        .content-overlay {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100%;
+        }
+
+        /* Arrow Icon */
+        .arrow-icon {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .arrow-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: #ffffff;
+        }
+
+        /* Main Heading */
+        .main-heading {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .main-heading h1 {
+            font-size: 56px;
+            font-weight: 400;
+            color: #ffffff;
+            line-height: 1.2;
+            letter-spacing: -0.01em;
+        }
+
+        /* Primary CTA Button */
+        .primary-button {
+            background: linear-gradient(135deg, #ff3b30 0%, #ff4136 100%);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            padding: 18px 70px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(255, 59, 48, 0.4);
+            position: relative;
+            overflow: hidden;
+            min-width: 220px;
+        }
+
+        .primary-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ff5449 0%, #ff5c52 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .primary-button:hover::before {
+            opacity: 1;
+        }
+
+        .primary-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(255, 59, 48, 0.6);
+        }
+
+        .primary-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(255, 59, 48, 0.4);
+        }
+
+        .primary-button span {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 
+        ========================================
+        RESPONSIVE DESIGN - BREAKPOINTS
+        ========================================
+        Scales perfectly across all devices:
+        
+        📱 Small Mobile (≤480px)  - iPhone SE, small phones
+        📱 Mobile (≤768px)        - Most phones
+        📱 Tablet (≤1024px)       - iPads, tablets
+        💻 Desktop (1025-1919px)  - Laptops, standard monitors
+        🖥️ Large/4K (≥1920px)    - 4K displays, ultrawide monitors
+        
+        All elements scale proportionally at each breakpoint.
+        */
+        @media (max-width: 1024px) {
+            .arrow-icon {
+                width: 90px;
+                height: 90px;
+                margin-bottom: 35px;
+            }
+
+            .main-heading h1 {
+                font-size: 48px;
+            }
+
+            .primary-button {
+                font-size: 17px;
+                padding: 17px 65px;
+                min-width: 210px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .arrow-icon {
+                width: 80px;
+                height: 80px;
+                margin-bottom: 30px;
+            }
+
+            .main-heading h1 {
+                font-size: 40px;
+                padding: 0 20px;
+            }
+
+            .primary-button {
+                font-size: 16px;
+                padding: 16px 60px;
+                min-width: 200px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .arrow-icon {
+                width: 70px;
+                height: 70px;
+                margin-bottom: 25px;
+            }
+
+            .main-heading h1 {
+                font-size: 32px;
+                padding: 0 15px;
+            }
+
+            .primary-button {
+                font-size: 15px;
+                padding: 15px 50px;
+                min-width: 180px;
+            }
+        }
+
+        /* Large screens */
+        @media (min-width: 1920px) {
+            .arrow-icon {
+                width: 120px;
+                height: 120px;
+                margin-bottom: 50px;
+            }
+
+            .main-heading h1 {
+                font-size: 64px;
+            }
+
+            .primary-button {
+                font-size: 20px;
+                padding: 20px 80px;
+                min-width: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 
+    VIDEO BACKGROUND SETUP
+    ======================
+    The video loops infinitely and auto-plays behind your content.
+    
+    TWO WAYS TO ADD YOUR VIDEO:
+    
+    1. DIRECT HTML (Simple):
+       Uncomment the <video> tag below and add your URL:
+       <video autoplay muted loop playsinline>
+           <source src="https://your-cdn.com/video.mp4" type="video/mp4">
+       </video>
+    
+    2. JAVASCRIPT (Dynamic):
+       Use the built-in function at the bottom of this file:
+       loadBackgroundVideo('https://your-cdn.com/video.mp4');
+    
+    PROTOTYPE PHASE - Use external links from:
+    - Direct links: https://example.com/video.mp4
+    - Cloud storage: AWS S3, Google Cloud, Dropbox, etc.
+    - Free hosts: imgur, imgbb, etc.
+    
+    PRODUCTION PHASE - CDN Ready:
+    Just swap the URL when ready (same code works):
+    - Cloudflare CDN
+    - AWS CloudFront
+    - Bunny CDN
+    - Your own CDN
+    
+    VIDEO SETTINGS:
+    - autoplay: starts immediately
+    - muted: required for autoplay to work
+    - loop: video repeats infinitely
+    - playsinline: works on mobile devices
+    
+    ADJUST OPACITY:
+    Find ".video-background video" in CSS and change opacity value (currently 0.6)
+    - Lower (0.3-0.5): darker, more readable text
+    - Higher (0.7-0.9): brighter video, less text contrast
+    -->
+    <div class="video-background">
+        <!-- Uncomment and add your video URL when ready -->
+        <!-- <video autoplay muted loop playsinline>
+            <source src="your-video.mp4" type="video/mp4">
+        </video> -->
+    </div>
+
+    <!-- Content Overlay -->
+    <div class="content-overlay">
+        <!-- Arrow Icon -->
+        <div class="arrow-icon">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 80 L80 20 M80 20 L80 65 M80 20 L35 20" 
+                      stroke="white" 
+                      stroke-width="8" 
+                      stroke-linecap="round" 
+                      stroke-linejoin="round" 
+                      fill="none"/>
+            </svg>
+        </div>
+
+        <!-- Heading -->
+        <div class="main-heading">
+            <h1>Learn by<br>doing</h1>
+        </div>
+
+        <!-- CTA Button -->
+        <button class="primary-button" onclick="handleEnterDojo()">
+            <span>Enter Dojo</span>
+        </button>
+    </div>
+
+    <script>
+        // Function to handle "Enter Dojo" button click
+        function handleEnterDojo() {
+            console.log('Enter Dojo clicked');
+            // Add your navigation logic here
+            // Example: window.location.href = '/dojo';
+            alert('Entering the Dojo...');
+        }
+
+        // Optional: Function to load video dynamically
+        // USAGE: loadBackgroundVideo('https://your-cdn.com/video.mp4');
+        // This function creates and inserts a video element programmatically
+        // Useful for loading videos conditionally or from user input
+        function loadBackgroundVideo(videoUrl) {
+            const videoContainer = document.querySelector('.video-background');
+            const video = document.createElement('video');
+            video.setAttribute('autoplay', '');
+            video.setAttribute('muted', '');
+            video.setAttribute('loop', '');
+            video.setAttribute('playsinline', '');
+            
+            const source = document.createElement('source');
+            source.src = videoUrl;
+            source.type = 'video/mp4';
+            
+            video.appendChild(source);
+            videoContainer.appendChild(video);
+        }
+
+        // EXAMPLE USAGE:
+        // Uncomment the line below and replace with your video URL to load a video
+        // loadBackgroundVideo('https://your-cdn.com/dojo-background.mp4');
+        
+        // FOR TESTING:
+        // loadBackgroundVideo('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4');
+    </script>
+</body>
+</html>
