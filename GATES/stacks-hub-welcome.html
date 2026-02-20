@@ -291,7 +291,7 @@
         <div class="left-panel">
             <div class="content">
                 <h1>Welcome to Stacks Hub</h1>
-                <p class="subtitle">A Space for creative Builders exploring the Bitcoin Network</p>
+                <p class="subtitle">A space for creative builders exploring the Bitcoin Network</p>
                 <button class="onboard-button" onclick="handleOnboard()">
                     <span>Onboard</span>
                 </button>
@@ -312,10 +312,20 @@
         function handleOnboard() {
             try {
                 const loginUrl = new URL('./login-email.html', window.location.href);
+                const currentParams = new URLSearchParams(window.location.search);
                 const isLocalHost = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
-                if (isLocalHost) {
+                const explicitBridge = currentParams.get('privyBridge');
+                const explicitBase = currentParams.get('websiteBase');
+                const isBtchubDomain = window.location.hostname === 'btchub.space' || window.location.hostname.endsWith('.btchub.space');
+
+                loginUrl.searchParams.set('websiteBase', explicitBase || window.location.origin);
+
+                if (explicitBridge) {
+                    loginUrl.searchParams.set('privyBridge', explicitBridge);
+                } else if (isLocalHost) {
                     loginUrl.searchParams.set('privyBridge', 'http://127.0.0.1:3001');
-                    loginUrl.searchParams.set('websiteBase', window.location.origin);
+                } else if (isBtchubDomain) {
+                    loginUrl.searchParams.set('privyBridge', 'https://auth.btchub.space');
                 }
                 // Fade out before navigating
                 document.body.classList.add('exiting');

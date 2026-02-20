@@ -386,11 +386,39 @@
     </div>
 
     <script>
+        function safeStorageGet(key) {
+            try {
+                return localStorage.getItem(key);
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function safeStorageSet(key, value) {
+            try {
+                localStorage.setItem(key, value);
+            } catch (error) {
+                // Ignore storage failures (private mode, blocked storage, etc.)
+            }
+        }
+
+        function getDefaultPrivyBridgeUrl() {
+            const hostname = window.location.hostname;
+            const isLocalHost = hostname === '127.0.0.1' || hostname === 'localhost';
+            if (isLocalHost) return 'http://127.0.0.1:3001';
+
+            if (hostname === 'btchub.space' || hostname.endsWith('.btchub.space')) {
+                return 'https://auth.btchub.space';
+            }
+
+            return null;
+        }
+
         function getPrivyBridgeBaseUrl() {
             const params = new URLSearchParams(window.location.search);
             const queryValue = params.get('privyBridge');
-            const storedValue = localStorage.getItem('STACKS_PRIVY_BRIDGE_URL');
-            const fallbackValue = 'http://127.0.0.1:3001';
+            const storedValue = safeStorageGet('STACKS_PRIVY_BRIDGE_URL');
+            const fallbackValue = getDefaultPrivyBridgeUrl();
             let candidate = queryValue || storedValue || fallbackValue;
 
             const isLocalHost = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
@@ -401,6 +429,10 @@
 
             if (isHttp && window.location.port === '3001' && !queryValue && !storedValue) {
                 candidate = window.location.origin;
+            }
+
+            if (!candidate) {
+                return null;
             }
 
             try {
@@ -418,7 +450,7 @@
         function getWebsiteBaseUrl() {
             const params = new URLSearchParams(window.location.search);
             const queryValue = params.get('websiteBase');
-            const storedValue = localStorage.getItem('STACKS_WEBSITE_BASE_URL');
+            const storedValue = safeStorageGet('STACKS_WEBSITE_BASE_URL');
             const fallbackValue = 'http://127.0.0.1:8080';
             const candidate = queryValue || storedValue || fallbackValue;
 
@@ -488,6 +520,7 @@
 
             const privyBridgeBaseUrl = getPrivyBridgeBaseUrl();
             if (privyBridgeBaseUrl) {
+                safeStorageSet('STACKS_PRIVY_BRIDGE_URL', privyBridgeBaseUrl);
                 const preconnect = document.createElement('link');
                 preconnect.rel = 'preconnect';
                 preconnect.href = privyBridgeBaseUrl;
