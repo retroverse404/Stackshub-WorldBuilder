@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StacksVerse Creator Hub</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            background: #0a0a0f;
+        }
+        
+        #canvas-container { width: 100vw; height: 100vh; position: relative; }
+        
+        #ui-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #e0e0e0;
+            background: rgba(10, 10, 15, 0.88);
+            padding: 15px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(247, 147, 26, 0.25);
+            backdrop-filter: blur(12px);
+            max-width: 280px;
+        }
+        
+        #ui-overlay h2 {
+            margin: 0 0 10px 0;
+            color: #f7931a;
+            font-size: 17px;
+            letter-spacing: 1px;
+        }
+        
+        #ui-overlay p { margin: 3px 0; font-size: 12px; opacity: 0.6; }
+        #ui-overlay .tip { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(247,147,26,0.15); color: #f7931a; font-size: 11px; opacity: 0.7; }
+        
+        #dialogue-box {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(12, 12, 18, 0.96);
+            color: #e0e0e0;
+            padding: 20px;
+            border-radius: 14px;
+            border: 1px solid rgba(247, 147, 26, 0.3);
+            max-width: 620px;
+            width: 90%;
+            display: none;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 0 20px rgba(247,147,26,0.08);
+        }
+        
+        #dialogue-box h3 { margin: 0 0 10px 0; color: #f7931a; font-size: 15px; padding-right: 30px; }
+        
+        #dialogue-close {
+            position: absolute; top: 12px; right: 14px;
+            background: none; border: 1px solid rgba(247,147,26,0.3);
+            color: #f7931a; font-size: 18px; cursor: pointer;
+            width: 28px; height: 28px; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; font-family: inherit; line-height: 1;
+        }
+        #dialogue-close:hover { background: rgba(247,147,26,0.15); border-color: #f7931a; }
+        
+        #dialogue-content {
+            margin: 10px 0; line-height: 1.6; max-height: 180px; overflow-y: auto; font-size: 14px;
+        }
+        #dialogue-content::-webkit-scrollbar { width: 4px; }
+        #dialogue-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); border-radius: 2px; }
+        #dialogue-content::-webkit-scrollbar-thumb { background: #f7931a; border-radius: 2px; }
+        
+        .dialogue-option {
+            background: rgba(247,147,26,0.06);
+            border: 1px solid rgba(247,147,26,0.2);
+            padding: 10px 14px;
+            margin: 6px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.25s;
+            font-family: inherit;
+            color: #ccc;
+            font-size: 13px;
+        }
+        .dialogue-option:hover {
+            background: rgba(247,147,26,0.15);
+            border-color: #f7931a;
+            transform: translateX(4px);
+            color: #fff;
+        }
+        
+        #custom-question-container {
+            margin-top: 12px; padding-top: 12px;
+            border-top: 1px solid rgba(247,147,26,0.15);
+        }
+        #custom-question-container p { margin: 4px 0 8px; font-size: 11px; opacity: 0.4; text-align: center; color: #f7931a; }
+        
+        #custom-question-input {
+            width: 100%; padding: 10px;
+            border: 1px solid rgba(247,147,26,0.25);
+            border-radius: 8px; font-size: 13px; font-family: inherit;
+            box-sizing: border-box;
+            background: rgba(247,147,26,0.05);
+            color: #e0e0e0; outline: none;
+        }
+        #custom-question-input:focus { border-color: #f7931a; box-shadow: 0 0 10px rgba(247,147,26,0.15); }
+        
+        #custom-question-submit {
+            background: #f7931a; color: #0a0a0f;
+            border: none; padding: 9px 18px; border-radius: 8px;
+            margin-top: 8px; cursor: pointer; font-size: 13px;
+            font-family: inherit; font-weight: bold; transition: all 0.25s;
+        }
+        #custom-question-submit:hover { opacity: 0.85; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(247,147,26,0.3); }
+        #custom-question-submit:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+        
+        .loading {
+            display: inline-block; width: 14px; height: 14px;
+            border: 2px solid rgba(247,147,26,0.2); border-radius: 50%;
+            border-top-color: #f7931a; animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        #interaction-prompt {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(10,10,15,0.9);
+            color: #f7931a; padding: 10px 20px; border-radius: 20px;
+            border: 1px solid rgba(247,147,26,0.3);
+            display: none; font-size: 14px; font-family: inherit;
+        }
+
+        #quit-game-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+            background: rgba(10, 10, 15, 0.88);
+            color: #f7931a;
+            border: 1px solid rgba(247, 147, 26, 0.35);
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-family: inherit;
+            font-size: 12px;
+            letter-spacing: 0.4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        #quit-game-btn:hover {
+            background: rgba(247, 147, 26, 0.12);
+            border-color: #f7931a;
+        }
+        
+        .floating-text {
+            position: absolute; color: #f7931a; font-size: 22px;
+            font-weight: bold; pointer-events: none;
+            animation: floatUp 2s ease-out forwards;
+            text-shadow: 0 0 10px rgba(247,147,26,0.5);
+        }
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-80px); }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <div id="ui-overlay">
+        <h2>STACKSVERSE CREATOR HUB</h2>
+        <p>WASD move · Arrows/mouse look</p>
+        <p>E interact · SPACE dance · ESC close</p>
+        <p class="tip">💡 Type custom questions when talking to creators</p>
+    </div>
+    
+    <div id="dialogue-box">
+        <button id="dialogue-close" onclick="document.getElementById('dialogue-box').style.display='none'; currentCharacter=null;">✕</button>
+        <h3 id="dialogue-name"></h3>
+        <div id="dialogue-content"></div>
+        <div id="dialogue-options"></div>
+        <div id="custom-question-container">
+            <p>━━ ask your own question ━━</p>
+            <input type="text" id="custom-question-input" placeholder="Ask anything..." maxlength="200">
+            <button id="custom-question-submit">Ask</button>
+        </div>
+    </div>
+    
+    <div id="interaction-prompt"></div>
+    <button id="quit-game-btn" type="button">Quit Game</button>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        function getQuitDestination() {
+            const params = new URLSearchParams(window.location.search);
+            const requested = params.get('return');
+            if (requested) {
+                try {
+                    const parsed = new URL(requested, window.location.href);
+                    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+                        return parsed.toString();
+                    }
+                } catch (error) {
+                    console.warn('Invalid return URL:', error);
+                }
+            }
+            return new URL('../../PAGES/page-02-curated-worlds.html', window.location.href).toString();
+        }
+
+        const quitGameButton = document.getElementById('quit-game-btn');
+        if (quitGameButton) {
+            quitGameButton.addEventListener('click', () => {
+                window.location.assign(getQuitDestination());
+            });
+        }
+
+        // ── Scene ──
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x080810);
+        scene.fog = new THREE.FogExp2(0x080810, 0.022);
+        
+        const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 100);
+        camera.position.set(0, 1.6, 5);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(innerWidth, innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.1;
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        
+        // ── Lights — Bitcoin orange dominant ──
+        scene.add(new THREE.AmbientLight(0x1a1410, 0.6));
+        
+        const mainLight = new THREE.DirectionalLight(0xffe0c0, 0.35);
+        mainLight.position.set(5, 12, 8);
+        mainLight.castShadow = true;
+        mainLight.shadow.mapSize.set(2048, 2048);
+        mainLight.shadow.camera.left = -25; mainLight.shadow.camera.right = 25;
+        mainLight.shadow.camera.top = 25; mainLight.shadow.camera.bottom = -25;
+        scene.add(mainLight);
+        
+        // Orange accent lights
+        const l1 = new THREE.PointLight(0xf7931a, 1.8, 22); l1.position.set(-10, 4, -10); scene.add(l1);
+        const l2 = new THREE.PointLight(0xf7931a, 1.4, 20); l2.position.set(10, 4, -10); scene.add(l2);
+        const l3 = new THREE.PointLight(0xe8820f, 0.8, 15); l3.position.set(0, 3, 10); scene.add(l3);
+        
+        // Floor glow spots — warm orange tones
+        [[-8,-8,0xf7931a],[8,-8,0xe8820f],[0,8,0xf7931a],[-8,8,0xd4760a],[8,8,0xf7931a]].forEach(([x,z,c]) => {
+            const g = new THREE.PointLight(c, 0.35, 7); g.position.set(x, 0.3, z); scene.add(g);
+        });
+        
+        // ── Floor ──
+        const floor = new THREE.Mesh(
+            new THREE.PlaneGeometry(40, 40),
+            new THREE.MeshStandardMaterial({ color: 0x0e0e14, roughness: 0.85, metalness: 0.15 })
+        );
+        floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+        
+        const grid = new THREE.GridHelper(40, 40, 0x1a1408, 0x141008);
+        grid.position.y = 0.01; scene.add(grid);
+        
+        // ── Walls ──
+        const wallMat = new THREE.MeshStandardMaterial({ color: 0x10100e, roughness: 0.9 });
+        const winMat = new THREE.MeshStandardMaterial({ color: 0xf7931a, emissive: 0xf7931a, emissiveIntensity: 0.08, transparent: true, opacity: 0.25 });
+        
+        const mkWall = (w,h,x,y,z,ry) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w,h), wallMat); m.position.set(x,y,z); m.rotation.y = ry||0; m.receiveShadow = true; scene.add(m); };
+        mkWall(40,8,0,4,-20,0);
+        mkWall(40,8,-20,4,0,Math.PI/2);
+        mkWall(40,8,20,4,0,-Math.PI/2);
+        
+        for (let x = -14; x <= 14; x += 7) {
+            const w = new THREE.Mesh(new THREE.PlaneGeometry(3, 2), winMat);
+            w.position.set(x, 4.5, -19.9); scene.add(w);
+        }
+        
+        // ── Stacks Logo (two interlocking rounded-rect outlines) ──
+        const stxMat = new THREE.MeshStandardMaterial({ color: 0xf7931a, emissive: 0xf7931a, emissiveIntensity: 0.7, metalness: 0.8, roughness: 0.15 });
+        const stxGroup = new THREE.Group();
+        
+        // Build the Stacks "S" mark — two overlapping square outlines offset diagonally
+        function makeRectOutline(w, h, thickness) {
+            const g = new THREE.Group();
+            const bGeo = new THREE.BoxGeometry(w, thickness, thickness);
+            const sGeo = new THREE.BoxGeometry(thickness, h, thickness);
+            const t1 = new THREE.Mesh(bGeo, stxMat); t1.position.set(0, h/2 - thickness/2, 0); g.add(t1);
+            const b1 = new THREE.Mesh(bGeo, stxMat); b1.position.set(0, -h/2 + thickness/2, 0); g.add(b1);
+            const l1 = new THREE.Mesh(sGeo, stxMat); l1.position.set(-w/2 + thickness/2, 0, 0); g.add(l1);
+            const r1 = new THREE.Mesh(sGeo, stxMat); r1.position.set(w/2 - thickness/2, 0, 0); g.add(r1);
+            return g;
+        }
+        
+        const rect1 = makeRectOutline(1.2, 1.2, 0.1);
+        rect1.position.set(-0.25, 0.25, 0);
+        stxGroup.add(rect1);
+        
+        const rect2 = makeRectOutline(1.2, 1.2, 0.1);
+        rect2.position.set(0.25, -0.25, 0);
+        stxGroup.add(rect2);
+        
+        stxGroup.position.set(-2.5, 5.2, -19);
+        scene.add(stxGroup);
+        
+        // ── Bitcoin ₿ Symbol ──
+        const btcMat = new THREE.MeshStandardMaterial({ color: 0xf7931a, emissive: 0xf7931a, emissiveIntensity: 0.7, metalness: 0.8, roughness: 0.15 });
+        const btcGroup = new THREE.Group();
+        
+        // Ring
+        btcGroup.add(new THREE.Mesh(new THREE.TorusGeometry(1.0, 0.07, 16, 32), btcMat));
+        // Vertical bars
+        [[-0.12, 0], [0.12, 0]].forEach(([x]) => {
+            const b = new THREE.Mesh(new THREE.BoxGeometry(0.07, 1.4, 0.07), btcMat);
+            b.position.set(x, 0, 0); btcGroup.add(b);
+        });
+        // Horizontal bars
+        [0.4, 0.13, -0.13, -0.4].forEach(y => {
+            const b = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.07, 0.07), btcMat);
+            b.position.set(0, y, 0); btcGroup.add(b);
+        });
+        
+        btcGroup.position.set(2.5, 5.2, -19);
+        scene.add(btcGroup);
+        
+        // ── "x" connector between logos ──
+        const xMat = new THREE.MeshStandardMaterial({ color: 0xf7931a, emissive: 0xf7931a, emissiveIntensity: 0.4 });
+        const x1 = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.6, 0.06), xMat);
+        x1.position.set(0, 5.2, -19); x1.rotation.z = Math.PI / 4; scene.add(x1);
+        const x2 = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.6, 0.06), xMat);
+        x2.position.set(0, 5.2, -19); x2.rotation.z = -Math.PI / 4; scene.add(x2);
+        
+        // ── Whiteboard ──
+        const wb = new THREE.Mesh(new THREE.BoxGeometry(3.5, 1.6, 0.08), new THREE.MeshStandardMaterial({ color: 0x12120e }));
+        wb.position.set(0, 2.5, -19.8); scene.add(wb);
+        
+        const wbC = document.createElement('canvas'); wbC.width = 512; wbC.height = 200;
+        const ctx = wbC.getContext('2d');
+        ctx.fillStyle = '#0e0e0a'; ctx.fillRect(0, 0, 512, 200);
+        ctx.font = 'bold 44px Courier New'; ctx.fillStyle = '#f7931a'; ctx.textAlign = 'center';
+        ctx.fillText('GM BUILDERS ₿', 256, 70);
+        ctx.font = '22px Courier New'; ctx.fillStyle = '#c47a15';
+        ctx.fillText('stack sats · ship code · make art', 256, 115);
+        ctx.font = '16px Courier New'; ctx.fillStyle = '#3a3020';
+        ctx.fillText('bitcoin L2 · clarity contracts · creator hub', 256, 155);
+        
+        const wbScr = new THREE.Mesh(new THREE.PlaneGeometry(3.3, 1.4), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(wbC) }));
+        wbScr.position.set(0, 2.5, -19.74); scene.add(wbScr);
+        
+        // ── Furniture ──
+        const woodMat = new THREE.MeshStandardMaterial({ color: 0x1e1608, roughness: 0.7 });
+        const metalMat = new THREE.MeshStandardMaterial({ color: 0x2a2a22, roughness: 0.3, metalness: 0.7 });
+        const screenMat = new THREE.MeshStandardMaterial({ color: 0x000000, emissive: 0x1a1206, emissiveIntensity: 0.2, roughness: 0.05, metalness: 0.5 });
+        
+        function createWorkstation(x, z) {
+            const g = new THREE.Group();
+            const accentMat = new THREE.MeshStandardMaterial({ color: 0xf7931a, emissive: 0xf7931a, emissiveIntensity: 0.12 });
+            
+            const top = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.08, 1.2), woodMat);
+            top.position.y = 0.75; top.castShadow = true; g.add(top);
+            
+            const strip = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.02, 0.04), accentMat);
+            strip.position.set(0, 0.8, -0.58); g.add(strip);
+            
+            const legGeo = new THREE.BoxGeometry(0.04, 0.72, 0.04);
+            [[-1.2,-0.56],[1.2,-0.56],[-1.2,0.56],[1.2,0.56]].forEach(([lx,lz]) => {
+                const l = new THREE.Mesh(legGeo, metalMat); l.position.set(lx, 0.36, lz); g.add(l);
+            });
+            
+            const mon = new THREE.Mesh(new THREE.BoxGeometry(1, 0.6, 0.04), screenMat);
+            mon.position.set(0, 1.25, -0.1); g.add(mon);
+            const stand = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.25, 0.04), metalMat);
+            stand.position.set(0, 0.92, -0.1); g.add(stand);
+            
+            const chairMat = new THREE.MeshStandardMaterial({ color: 0x18180e });
+            const seat = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.04, 0.45), chairMat);
+            seat.position.set(0, 0.45, 0.8); g.add(seat);
+            const back = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.5, 0.04), chairMat);
+            back.position.set(0, 0.72, 1.0); g.add(back);
+            
+            g.position.set(x, 0, z);
+            return g;
+        }
+        
+        [[-10,-10],[0,-10],[10,-10],[-10,5],[0,5],[10,5]].forEach(([x,z]) => scene.add(createWorkstation(x, z)));
+        
+        // Lounge
+        const cMat = new THREE.MeshStandardMaterial({ color: 0x14140e });
+        const mkSeat = (x,z,ry) => {
+            const s = new THREE.Group();
+            const base = new THREE.Mesh(new THREE.BoxGeometry(2, 0.4, 0.8), cMat);
+            base.position.set(0, 0.2, 0); s.add(base);
+            const bk = new THREE.Mesh(new THREE.BoxGeometry(2, 0.5, 0.15), cMat);
+            bk.position.set(0, 0.55, -0.35); s.add(bk);
+            s.position.set(x, 0, z); s.rotation.y = ry; return s;
+        };
+        scene.add(mkSeat(-2.5, 0, Math.PI/2));
+        scene.add(mkSeat(2.5, 0, -Math.PI/2));
+        
+        const cTable = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.35, 16), new THREE.MeshStandardMaterial({ color: 0x14140e, metalness: 0.4 }));
+        cTable.position.set(0, 0.18, 0); cTable.castShadow = true; scene.add(cTable);
+        
+        // Plants
+        const potMat = new THREE.MeshStandardMaterial({ color: 0x1a1408 });
+        const leafMat = new THREE.MeshStandardMaterial({ color: 0x0d3d1e });
+        [[-15,-15],[15,-15],[-15,15],[15,15]].forEach(([x,z]) => {
+            const p = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.2, 0.35, 8), potMat);
+            p.position.set(x, 0.18, z); scene.add(p);
+            const l = new THREE.Mesh(new THREE.SphereGeometry(0.5, 6, 5), leafMat);
+            l.position.set(x, 0.7, z); scene.add(l);
+        });
+        
+        // ── Floating text ──
+        function createFloatingText(text, worldPos) {
+            const sp = worldPos.clone().project(camera);
+            const div = document.createElement('div');
+            div.className = 'floating-text'; div.textContent = text;
+            div.style.left = (sp.x * 0.5 + 0.5) * innerWidth + 'px';
+            div.style.top = (-sp.y * 0.5 + 0.5) * innerHeight + 'px';
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 2000);
+        }
+        
+        // ── Characters ──
+        const characters = [];
+        
+        function createCharacter(name, role, x, z, shirtColor, data) {
+            const g = new THREE.Group();
+            const sMat = new THREE.MeshStandardMaterial({ color: shirtColor, emissive: shirtColor, emissiveIntensity: 0.08 });
+            
+            const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.28, 0.75, 8), sMat);
+            torso.position.y = 0.58; torso.castShadow = true; g.add(torso);
+            
+            const aGeo = new THREE.CylinderGeometry(0.07, 0.07, 0.55, 6);
+            const la = new THREE.Mesh(aGeo, sMat); la.position.set(-0.3, 0.65, 0); la.rotation.z = Math.PI/8; g.add(la);
+            const ra = new THREE.Mesh(aGeo, sMat); ra.position.set(0.3, 0.65, 0); ra.rotation.z = -Math.PI/8; g.add(ra);
+            
+            const lGeo = new THREE.CylinderGeometry(0.09, 0.09, 0.7, 6);
+            const lMat = new THREE.MeshStandardMaterial({ color: 0x1a1a10 });
+            const ll = new THREE.Mesh(lGeo, lMat); ll.position.set(-0.12, 0.35, 0); g.add(ll);
+            const rl = new THREE.Mesh(lGeo, lMat); rl.position.set(0.12, 0.35, 0); g.add(rl);
+            
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), new THREE.MeshStandardMaterial({ color: data.skinTone || 0xd4a574 }));
+            head.position.y = 1.18; head.castShadow = true; g.add(head);
+            
+            const hair = new THREE.Mesh(new THREE.SphereGeometry(0.24, 8, 6), new THREE.MeshStandardMaterial({ color: data.hairColor }));
+            hair.position.y = 1.28; hair.scale.y = 0.55; g.add(hair);
+            
+            const eMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.4 });
+            const eGeo = new THREE.SphereGeometry(0.025, 4, 4);
+            const le = new THREE.Mesh(eGeo, eMat); le.position.set(-0.07, 1.18, 0.2); g.add(le);
+            const re = new THREE.Mesh(eGeo, eMat); re.position.set(0.07, 1.18, 0.2); g.add(re);
+            
+            if (data.isAI) {
+                const ring = new THREE.Mesh(
+                    new THREE.TorusGeometry(0.18, 0.015, 8, 16),
+                    new THREE.MeshStandardMaterial({ color: 0xf7931a, emissive: 0xf7931a, emissiveIntensity: 1.0 })
+                );
+                ring.position.set(0, 1.18, 0.15); g.add(ring);
+            }
+            
+            // Label
+            const c = document.createElement('canvas'); c.width = 256; c.height = 52;
+            const cx = c.getContext('2d');
+            cx.fillStyle = 'rgba(8,8,12,0.85)'; cx.fillRect(0, 0, 256, 52);
+            cx.strokeStyle = '#f7931a'; cx.lineWidth = 1; cx.strokeRect(1, 1, 254, 50);
+            cx.fillStyle = '#fff'; cx.font = 'bold 16px Courier New'; cx.textAlign = 'center';
+            cx.fillText(name, 128, 20);
+            cx.font = '12px Courier New'; cx.fillStyle = '#f7931a';
+            cx.fillText(role, 128, 40);
+            
+            const label = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c) }));
+            label.position.y = 1.65; label.scale.set(1.8, 0.37, 1); g.add(label);
+            
+            g.position.set(x, 0, z);
+            g.userData = {
+                name, role, conversations: [],
+                initialPosition: new THREE.Vector3(x, 0, z),
+                targetPosition: new THREE.Vector3(x, 0, z),
+                moveTimer: 0, isDancing: false,
+                leftArm: la, rightArm: ra,
+                ...data
+            };
+            characters.push(g);
+            return g;
+        }
+        
+        // ── The Crew ──
+        scene.add(createCharacter('Blockface', 'AI Tutor · BTCU', -5, -4, 0xf7931a, {
+            hairColor: 0x222222, skinTone: 0xc0c0c0, isAI: true,
+            personality: 'witty AI guide who explains Bitcoin through stories and metaphors',
+            quirk: 'occasionally glitches mid-sentence and speaks in hex'
+        }));
+        scene.add(createCharacter('Lyra', 'Music Producer · Web3', 10, -4, 0xcc5500, {
+            hairColor: 0x8b008b, skinTone: 0x8d5524,
+            personality: 'passionate about tokenized music and on-chain royalties',
+            quirk: 'beatboxes while explaining smart contracts'
+        }));
+        scene.add(createCharacter('Pixel', 'Visual Artist · NFTs', -10, 4, 0xd4760a, {
+            hairColor: 0x1a6a3a, skinTone: 0xf1c27d,
+            personality: 'digital artist exploring generative art on Stacks',
+            quirk: 'describes everything in color hex codes'
+        }));
+        scene.add(createCharacter('Stack', 'Clarity Dev · Builder', 0, -12, 0xe8820f, {
+            hairColor: 0x2c2c2c, skinTone: 0xd4a574,
+            personality: 'Stacks developer who lives and breathes Clarity contracts',
+            quirk: 'speaks in function calls when excited'
+        }));
+        scene.add(createCharacter('Saga', 'Storyteller · Lore', 10, 4, 0xf7931a, {
+            hairColor: 0x654321, skinTone: 0xc68642,
+            personality: 'narrative designer building Bitcoin education through interactive stories',
+            quirk: 'turns every explanation into an epic quest'
+        }));
+        scene.add(createCharacter('Voxel', '3D Architect · Metaverse', -10, -12, 0xc47a15, {
+            hairColor: 0x4a4a4a, skinTone: 0xffe0bd,
+            personality: 'metaverse builder who designs immersive learning environments',
+            quirk: 'mentally models everything as a 3D scene graph'
+        }));
+        
+        // ── Dialogue ──
+        const dialogueBox = document.getElementById('dialogue-box');
+        const dialogueName = document.getElementById('dialogue-name');
+        const dialogueContent = document.getElementById('dialogue-content');
+        const dialogueOptions = document.getElementById('dialogue-options');
+        const interactionPrompt = document.getElementById('interaction-prompt');
+        const customInput = document.getElementById('custom-question-input');
+        const customSubmit = document.getElementById('custom-question-submit');
+        
+        let currentCharacter = null, nearbyCharacter = null;
+        
+        const questionPool = [
+            "What makes Bitcoin special for creators?",
+            "How do Stacks smart contracts work?",
+            "What's Clarity and why should I care?",
+            "How can musicians earn on-chain?",
+            "What are SIP-009 NFTs?",
+            "How does proof-of-transfer work?",
+            "What are you building right now?",
+            "How'd you get into Web3?",
+            "What's your creative process?",
+            "Best advice for new builders?",
+            "What tools do you use daily?",
+            "How do you stay motivated?",
+            "What does 'GM' really mean to you?",
+            "How do you find your community?",
+            "What's the vibe in Stacks ecosystem?",
+            "Decentralization — hype or hope?",
+            "Tabs or spaces?",
+            "Favorite rabbit hole recently?",
+            "Hot take on AI + Bitcoin?",
+            "What would Satoshi think of NFTs?",
+            "If Bitcoin were a song, what genre?",
+            "Dark mode or light mode?",
+            "Best midnight snack while coding?",
+            "What's your origin story?"
+        ];
+        
+        function randomQuestions() {
+            return [...questionPool].sort(() => Math.random() - 0.5).slice(0, 4);
+        }
+        
+        function openDialogue(ch) {
+            currentCharacter = ch;
+            dialogueBox.style.display = 'block';
+            dialogueName.textContent = `${ch.userData.name} — ${ch.userData.role}`;
+            if (document.pointerLockElement === renderer.domElement) document.exitPointerLock();
+            
+            const greetings = [
+                `GM! I'm ${ch.userData.name}. ${ch.userData.quirk.charAt(0).toUpperCase() + ch.userData.quirk.slice(1)}. What's good?`,
+                `Yo! ${ch.userData.name} here. Ask me anything about building in Web3.`,
+                `Hey builder! I'm ${ch.userData.name}, ${ch.userData.role}. Let's chop it up.`,
+                `*${ch.userData.name} daps you up* What do you wanna know?`
+            ];
+            
+            const last = ch.userData.conversations[ch.userData.conversations.length - 1];
+            dialogueContent.innerHTML = last
+                ? `<p><strong>You:</strong> ${last.user}</p><p><strong>${ch.userData.name}:</strong> ${last.response}</p>`
+                : `<p><strong>${ch.userData.name}:</strong> ${greetings[Math.floor(Math.random() * greetings.length)]}</p>`;
+            
+            dialogueOptions.innerHTML = '';
+            randomQuestions().forEach(o => {
+                const d = document.createElement('div'); d.className = 'dialogue-option'; d.textContent = o;
+                d.onclick = () => selectOption(o); dialogueOptions.appendChild(d);
+            });
+            customInput.value = '';
+            setTimeout(() => customInput.focus(), 100);
+        }
+        
+        async function selectOption(opt) {
+            if (!currentCharacter) return;
+            dialogueContent.innerHTML += `<p><strong>You:</strong> ${opt}</p><p><strong>${currentCharacter.userData.name}:</strong> <span class="loading"></span></p>`;
+            dialogueContent.scrollTop = dialogueContent.scrollHeight;
+            dialogueOptions.style.pointerEvents = 'none'; dialogueOptions.style.opacity = '0.4';
+            customInput.disabled = true; customSubmit.disabled = true;
+            
+            let resp = '';
+            try {
+                const res = await fetch("https://api.anthropic.com/v1/messages", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        model: "claude-sonnet-4-20250514", max_tokens: 1000,
+                        messages: [{ role: "user", content: `You are ${currentCharacter.userData.name}, ${currentCharacter.userData.role}.
+Personality: ${currentCharacter.userData.personality}. Quirk: ${currentCharacter.userData.quirk}.
+SETTING: StacksVerse Creator Hub — a social space for Bitcoin creators, musicians, artists, developers, and storytellers. Built on the Stacks L2 Bitcoin ecosystem.
+CONTEXT: You know about Bitcoin, Stacks blockchain, Clarity smart contracts, SIP-009 NFTs, proof-of-transfer, on-chain royalties, decentralized identity, Web3 creator tools.
+User asks: "${opt}"
+Respond in character with warmth, humor, and creator energy. 50-80 words. Output ONLY valid JSON: {"response": "your response here"}` }]
+                    })
+                });
+                const data = await res.json();
+                const txt = data.content?.map(i => i.text || '').join('') || '';
+                resp = JSON.parse(txt.replace(/```json|```/g, '').trim()).response;
+            } catch (e) { resp = generateFallback(currentCharacter, opt); }
+            
+            currentCharacter.userData.conversations.push({ user: opt, response: resp });
+            dialogueContent.innerHTML = dialogueContent.innerHTML.replace('<span class="loading"></span>', resp);
+            dialogueContent.scrollTop = dialogueContent.scrollHeight;
+            if (Math.random() < 0.25) createFloatingText('₿', currentCharacter.position);
+            
+            dialogueOptions.innerHTML = '';
+            randomQuestions().forEach(o => {
+                const d = document.createElement('div'); d.className = 'dialogue-option'; d.textContent = o;
+                d.onclick = () => selectOption(o); dialogueOptions.appendChild(d);
+            });
+            dialogueOptions.style.pointerEvents = 'auto'; dialogueOptions.style.opacity = '1';
+            customInput.disabled = false; customSubmit.disabled = false; customInput.focus();
+        }
+        
+        function generateFallback(ch, q) {
+            const r = {
+                'Blockface': [
+                    "GM builder! Bitcoin is programmable money, and Stacks makes it programmable *everything*. With Clarity contracts you can build transparent, auditable systems. 0x48656C6C6F... sorry, glitched there. We're early, and that's beautiful.",
+                    "Here's the thing about Bitcoin education — it shouldn't feel like homework. It should feel like an adventure. Learn by doing, not by reading whitepapers at 3 AM. Though I do that too.",
+                ],
+                'Lyra': [
+                    "Music and Bitcoin? Perfect harmony! On-chain royalties mean artists get paid automatically, forever. No middlemen, no disputes. Every beat drop generates a transparent smart contract. That's a vibe.",
+                    "Tokenized music is the future. Imagine dropping a track where your fans literally own a piece. SIP-009 NFTs make it real on Stacks. *starts beatboxing in Clarity syntax*",
+                ],
+                'Pixel': [
+                    "Generative art on Stacks hits different. Immutability means your art lives forever on Bitcoin's security. My latest collection derives colors from block hashes. #f7931a energy all day.",
+                    "NFTs aren't just JPEGs — they're programmable art objects. My latest series uses Clarity contracts to evolve based on holder interactions. The art literally changes. Color me #f7931a excited.",
+                ],
+                'Stack': [
+                    "(define-public (explain-clarity) (ok 'Clarity is readable, decidable, and non-Turing complete — you always know what a contract will do before running it. That's THE feature.')) Sorry, got excited there.",
+                    "Building on Stacks means your smart contracts are secured by Bitcoin. Proof-of-transfer is genius — miners spend BTC to earn STX. Bitcoin's security is the foundation, we're building the skyscraper.",
+                ],
+                'Saga': [
+                    "Every great technology needs great stories. Bitcoin's origin IS a story — a mysterious creator, a revolutionary idea. You're not just learning, you're on a quest.",
+                    "I design narratives where the lore IS the education. Walk through a Bitcoin museum, solve puzzles that teach you about UTXOs. Learning should be legendary.",
+                ],
+                'Voxel': [
+                    "Building 3D worlds for Bitcoin education is like being an architect for the future. Each environment is designed to make abstract concepts tangible. Walk through a blockchain, literally.",
+                    "The metaverse isn't about escaping reality, it's about augmenting understanding. When you *see* proof-of-transfer in 3D, it clicks differently. Scene graph optimized, obviously.",
+                ]
+            };
+            const pool = r[ch.userData.name] || r['Blockface'];
+            return pool[Math.floor(Math.random() * pool.length)];
+        }
+        
+        customSubmit.addEventListener('click', () => {
+            const q = customInput.value.trim();
+            if (q && currentCharacter) { selectOption(q); customInput.value = ''; }
+        });
+        customInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') { const q = customInput.value.trim(); if (q && currentCharacter) { selectOption(q); customInput.value = ''; } }
+        });
+        
+        // ── Player & Controls ──
+        const player = { position: new THREE.Vector3(0, 1.6, 5), velocity: new THREE.Vector3(), speed: 0.1, isDancing: false };
+        const keys = {};
+        let mouseX = 0;
+        const raycaster = new THREE.Raycaster();
+        const pointer = new THREE.Vector2();
+        
+        document.addEventListener('keydown', (e) => {
+            if (document.activeElement === customInput) { if (e.key === 'Escape') { dialogueBox.style.display = 'none'; currentCharacter = null; } return; }
+            keys[e.key.toLowerCase()] = true; keys[e.key] = true;
+            if (e.key.toLowerCase() === 'e' && nearbyCharacter && dialogueBox.style.display !== 'block') { e.preventDefault(); openDialogue(nearbyCharacter); }
+            if (e.key === ' ' && dialogueBox.style.display !== 'block') { e.preventDefault(); player.isDancing = true; createFloatingText('🕺', player.position); }
+            if (e.key === 'Escape') { dialogueBox.style.display = 'none'; currentCharacter = null; if (document.pointerLockElement === renderer.domElement) document.exitPointerLock(); }
+            if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
+        });
+        document.addEventListener('keyup', (e) => { if (document.activeElement === customInput) return; keys[e.key.toLowerCase()] = false; keys[e.key] = false; if (e.key === ' ') player.isDancing = false; });
+        let isMouseDown = false;
+        let lastMouseX = 0;
+        let mouseDownX = 0;
+        let mouseDownY = 0;
+        
+        renderer.domElement.addEventListener('mousedown', (e) => {
+            if (dialogueBox.style.display === 'block') return;
+            isMouseDown = true;
+            lastMouseX = e.clientX;
+            mouseDownX = e.clientX;
+            mouseDownY = e.clientY;
+            renderer.domElement.style.cursor = 'grabbing';
+        });
+        
+        document.addEventListener('mouseup', () => {
+            isMouseDown = false;
+            renderer.domElement.style.cursor = 'grab';
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (dialogueBox.style.display === 'block') return;
+            if (isMouseDown) {
+                const dx = e.clientX - lastMouseX;
+                mouseX -= dx * 0.004;
+                lastMouseX = e.clientX;
+            }
+        });
+
+        function findCharacterRoot(object3d) {
+            let node = object3d;
+            while (node) {
+                if (characters.includes(node)) return node;
+                node = node.parent;
+            }
+            return null;
+        }
+
+        renderer.domElement.addEventListener('click', (event) => {
+            if (dialogueBox.style.display === 'block') return;
+
+            const dragDistance = Math.hypot(event.clientX - mouseDownX, event.clientY - mouseDownY);
+            if (dragDistance > 6) return;
+
+            const rect = renderer.domElement.getBoundingClientRect();
+            pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+            raycaster.setFromCamera(pointer, camera);
+            const hits = raycaster.intersectObjects(characters, true);
+            if (!hits.length) return;
+
+            const targetCharacter = findCharacterRoot(hits[0].object);
+            if (targetCharacter) {
+                openDialogue(targetCharacter);
+            }
+        });
+        
+        renderer.domElement.style.cursor = 'grab';
+        
+        // ── Character AI ──
+        function updateCharacter(ch, dt) {
+            if (ch === currentCharacter) {
+                ch.lookAt(new THREE.Vector3(player.position.x, ch.position.y, player.position.z));
+                ch.rotation.x = 0; ch.rotation.z = 0; return;
+            }
+            if (ch.userData.isDancing) return;
+            if (Math.random() < 0.0008) { ch.userData.isDancing = true; createFloatingText('🎵', ch.position); setTimeout(() => { ch.userData.isDancing = false; }, 3000); return; }
+            
+            ch.userData.moveTimer -= dt;
+            if (ch.userData.moveTimer <= 0) {
+                const a = Math.random() * Math.PI * 2, d = 2 + Math.random() * 4;
+                ch.userData.targetPosition.set(
+                    Math.max(-17, Math.min(17, ch.userData.initialPosition.x + Math.cos(a) * d)), 0,
+                    Math.max(-17, Math.min(17, ch.userData.initialPosition.z + Math.sin(a) * d))
+                );
+                ch.userData.moveTimer = 4 + Math.random() * 6;
+            }
+            const dir = new THREE.Vector3().subVectors(ch.userData.targetPosition, ch.position); dir.y = 0;
+            if (dir.length() > 0.1) {
+                dir.normalize(); ch.position.add(dir.multiplyScalar(0.018));
+                ch.lookAt(ch.userData.targetPosition); ch.rotation.x = 0; ch.rotation.z = 0;
+                ch.position.y = Math.abs(Math.sin(Date.now() * 0.005)) * 0.04;
+            }
+        }
+        
+        // ── Loop ──
+        let lastTime = 0;
+        function animate(t) {
+            requestAnimationFrame(animate);
+            const dt = (t - lastTime) / 1000; lastTime = t;
+            
+            // Logo animations
+            btcGroup.rotation.y += 0.006;
+            btcGroup.position.y = 5.2 + Math.sin(t * 0.001) * 0.2;
+            stxGroup.rotation.y += 0.006;
+            stxGroup.position.y = 5.2 + Math.sin(t * 0.001 + 0.5) * 0.2;
+            
+            // Light pulse
+            l1.intensity = 1.8 + Math.sin(t * 0.0015) * 0.3;
+            l2.intensity = 1.4 + Math.cos(t * 0.0015) * 0.3;
+            
+            const dlg = dialogueBox.style.display === 'block';
+            player.velocity.set(0, 0, 0);
+            if (!player.isDancing && !dlg) {
+                if (keys['w']) player.velocity.z = player.speed;
+                if (keys['s']) player.velocity.z = -player.speed;
+                if (keys['a']) player.velocity.x = -player.speed;
+                if (keys['d']) player.velocity.x = player.speed;
+                if (keys['ArrowLeft']) mouseX += 0.05;
+                if (keys['ArrowRight']) mouseX -= 0.05;
+            }
+            
+            const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); fwd.y = 0; fwd.normalize();
+            const rt = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion); rt.y = 0; rt.normalize();
+            player.position.add(fwd.multiplyScalar(player.velocity.z));
+            player.position.add(rt.multiplyScalar(player.velocity.x));
+            player.position.x = Math.max(-18, Math.min(18, player.position.x));
+            player.position.z = Math.max(-18, Math.min(18, player.position.z));
+            
+            if (player.isDancing && !dlg) {
+                camera.position.y = player.position.y + Math.sin(t * 0.01) * 0.2;
+                camera.rotation.z = Math.sin(t * 0.01) * 0.1;
+            } else {
+                camera.position.copy(player.position); camera.rotation.z = 0;
+            }
+            if (!dlg) { camera.rotation.y = mouseX; camera.rotation.x = 0; }
+            
+            characters.forEach(ch => {
+                updateCharacter(ch, dt);
+                if (ch.userData.isDancing) {
+                    ch.rotation.y += 0.1;
+                    ch.position.y = Math.abs(Math.sin(t * 0.01)) * 0.25;
+                    ch.userData.leftArm.rotation.z = Math.sin(t * 0.01) * 0.5 + Math.PI / 8;
+                    ch.userData.rightArm.rotation.z = -Math.sin(t * 0.01) * 0.5 - Math.PI / 8;
+                }
+            });
+            
+            nearbyCharacter = null; let minD = Infinity;
+            characters.forEach(ch => { const d = player.position.distanceTo(ch.position); if (d < 3 && d < minD) { minD = d; nearbyCharacter = ch; } });
+            
+            interactionPrompt.style.display = (nearbyCharacter && !currentCharacter) ? 'block' : 'none';
+            if (nearbyCharacter && !currentCharacter) interactionPrompt.textContent = `Press E → ${nearbyCharacter.userData.name}`;
+            
+            renderer.render(scene, camera);
+        }
+        
+        window.addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+        animate(0);
+    </script>
+</body>
+</html>

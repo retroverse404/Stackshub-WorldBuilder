@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StacksHub Section</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #ffffff;
+  color: #111;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+/* ── OUTER WRAPPER ── */
+.section-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  width: 100%;
+  max-width: 1200px;
+  align-items: start;
+}
+
+/* ══════════════════════════════════════
+   LEFT COLUMN
+══════════════════════════════════════ */
+.left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ── Flow Diagram ── */
+.flow-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 0;
+  padding: 8px 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+.flow-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 64px;
+}
+.flow-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 1.5px solid #ccc;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.flow-icon svg {
+  width: 22px;
+  height: 22px;
+  stroke: #444;
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.flow-label {
+  font-size: 0.68rem;
+  color: #666;
+  text-align: center;
+  white-space: nowrap;
+  font-weight: 400;
+}
+.flow-connector {
+  display: flex;
+  align-items: center;
+  padding-bottom: 26px; /* aligns with center of icon */
+  color: #bbb;
+  font-size: 1rem;
+  flex-shrink: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+/* ── Features Card ── */
+.features-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e5e3de;
+  padding: 24px 24px 28px;
+}
+.features-card .card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+}
+.features-card .card-desc {
+  font-size: 0.72rem;
+  color: #888;
+  line-height: 1.55;
+  margin-bottom: 20px;
+}
+.features-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.feature-item {
+  border: 1px solid #e5e3de;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.feature-thumb {
+  width: 100%;
+  aspect-ratio: 16/9;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ft-spaces   { background: linear-gradient(140deg, #c8d8e8 0%, #a0b8d0 100%); }
+.ft-blockface{ background: #1a1a1a; }
+.ft-quests   { background: linear-gradient(140deg, #1a2e3a 0%, #0e1e2a 100%); }
+.ft-assets   { background: linear-gradient(140deg, #2a2a2a 0%, #3a3a3a 100%); }
+.ft-spaces-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.ft-quests-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.ft-blockface-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.ft-assets-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ft-badge {
+  position: absolute;
+  top: 7px;
+  left: 8px;
+  background: #f5a623;
+  color: #fff;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+.ft-thumb-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.08em;
+  text-align: center;
+  padding: 8px;
+}
+/* Spaces scene approximation */
+.spaces-scene {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: linear-gradient(160deg, #b0c8de 0%, #7a9fbe 100%);
+}
+.spaces-scene .ground {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 35%;
+  background: linear-gradient(to bottom, #4a7a5a, #3a5a4a);
+  clip-path: polygon(0 30%, 100% 0%, 100% 100%, 0 100%);
+}
+.spaces-scene .pagoda {
+  position: absolute;
+  bottom: 30%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.pagoda-roof {
+  width: 100%;
+  height: 8px;
+  background: #555;
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+}
+.pagoda-body {
+  width: 60%;
+  height: 14px;
+  background: #666;
+}
+/* Quests / Programming on Bitcoin scene */
+.quests-scene {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px;
+}
+.quests-scene .q-dots {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.q-dot { width: 6px; height: 6px; border-radius: 50%; }
+.q-red { background: #e74c3c; }
+.q-yellow { background: #f1c40f; }
+.q-green { background: #2ecc71; }
+.quests-scene .q-text {
+  font-size: 0.6rem;
+  color: #ccc;
+  text-align: center;
+  line-height: 1.4;
+}
+/* Assets scene */
+.assets-scene {
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+  align-items: flex-end;
+}
+.asset-box {
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  background: rgba(255,255,255,0.05);
+}
+
+.feature-info {
+  padding: 10px 12px 12px;
+  background: #fff;
+}
+.feature-info h4 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+.feature-info p {
+  font-size: 0.66rem;
+  color: #999;
+  line-height: 1.45;
+}
+.feature-footnote {
+  font-size: 0.6rem;
+  color: #bbb;
+  line-height: 1.45;
+  margin-top: 6px;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 6px;
+}
+
+/* ══════════════════════════════════════
+   RIGHT COLUMN
+══════════════════════════════════════ */
+.right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Hero Card ── */
+.hero-card {
+  border-radius: 18px;
+  padding: 36px 36px 32px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  position: relative;
+  overflow: hidden;
+  min-height: 240px;
+  background: #111;
+}
+
+/* Full-bleed thumbnail background */
+.hero-bg-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.hero-bg-video video,
+.hero-bg-video img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Left-to-right gradient overlay — makes text legible */
+.hero-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(10,10,10,0.92) 0%,
+    rgba(10,10,10,0.75) 42%,
+    rgba(10,10,10,0.25) 70%,
+    rgba(10,10,10,0.05) 100%
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Netflix-style left text */
+.hero-text {
+  position: relative;
+  z-index: 2;
+  max-width: 320px;
+}
+.upcoming-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #aaa;
+  margin-bottom: 10px;
+}
+.hero-title {
+  font-size: clamp(1.6rem, 3vw, 2.6rem);
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin-bottom: 6px;
+}
+.hero-subtitle {
+  font-size: 0.78rem;
+  color: #ccc;
+  font-weight: 300;
+  margin-bottom: 8px;
+  letter-spacing: 0.01em;
+}
+.hero-tagline {
+  font-size: 0.68rem;
+  color: #888;
+  font-weight: 400;
+  margin-bottom: 22px;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+}
+
+/* Orange swap icon — kept for mobile responsiveness reference */
+.swap-btn { display: none; }
+
+/* Input row */
+.hero-input-row {
+  display: flex;
+  max-width: 280px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.hero-input-row input {
+  flex: 1;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-right: none;
+  padding: 10px 13px;
+  color: #fff;
+  font-size: 0.75rem;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  border-radius: 10px 0 0 10px;
+  min-width: 0;
+}
+.hero-input-row input::placeholder { color: #555; }
+.hero-input-row button {
+  background: #f5a623;
+  border: none;
+  padding: 10px 15px;
+  color: #111;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+  border-radius: 0 10px 10px 0;
+  letter-spacing: 0.02em;
+}
+.hero-input-row button:hover { background: #e09815; }
+
+/* Diamond logo */
+.diamond-logo {
+  position: absolute;
+  bottom: 18px;
+  right: 22px;
+  z-index: 1;
+}
+.diamond-logo svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Pagination dots */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  padding-top: 8px;
+  grid-column: 1 / -1;
+}
+.pdot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #d0cdc8; cursor: pointer;
+  transition: background 0.2s;
+}
+.pdot.active { background: #333; }
+
+/* ══════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════ */
+@media (max-width: 900px) {
+  .section-wrapper {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .pagination { grid-column: 1; }
+}
+@media (max-width: 600px) {
+  body { padding: 20px 14px; }
+  .features-grid { grid-template-columns: 1fr 1fr; }
+  .hero-card { padding: 24px 20px; min-height: 200px; }
+  .hero-input-row { max-width: 100%; }
+  .flow-row { gap: 0; }
+}
+@media (max-width: 400px) {
+  .features-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="section-wrapper">
+
+  <!-- ══════════ LEFT COLUMN ══════════ -->
+  <div class="left-col">
+
+    <!-- Flow Diagram -->
+    <div class="flow-row">
+      <div class="flow-step">
+        <div class="flow-icon">
+          <!-- User icon -->
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        </div>
+        <span class="flow-label">Agent</span>
+      </div>
+
+      <div class="flow-connector">→</div>
+
+      <div class="flow-step">
+        <div class="flow-icon">
+          <!-- Globe / worlds -->
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M2 12h20"/><path d="M12 2a15.5 15.5 0 0 1 0 20"/><path d="M12 2a15.5 15.5 0 0 0 0 20"/></svg>
+        </div>
+        <span class="flow-label"> World</span>
+      </div>
+
+      <div class="flow-connector">→</div>
+
+      <div class="flow-step">
+        <div class="flow-icon">
+          <!-- Target / attainment -->
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" fill="#444" stroke="none"/><path d="M12 3l2.5 5.5M20 12l-5.5 2.5"/></svg>
+        </div>
+        <span class="flow-label">Attainment</span>
+      </div>
+
+      <div class="flow-connector">→</div>
+
+      <div class="flow-step">
+        <div class="flow-icon">
+          <!-- VHS tape / SIP-009 -->
+          <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="12" rx="2"/><circle cx="8" cy="13" r="2"/><circle cx="16" cy="13" r="2"/><path d="M10 13h4"/></svg>
+        </div>
+        <span class="flow-label">Mint</span>
+      </div>
+
+      <div class="flow-connector">→</div>
+
+      <div class="flow-step">
+        <div class="flow-icon">
+          <!-- Lock / access control -->
+          <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        </div>
+        <span class="flow-label">Unblock</span>
+      </div>
+    </div>
+
+    <!-- Features Card -->
+    <div class="features-card">
+      <div class="card-title">Evolutionary Media</div>
+      <div class="card-desc">Programmable IP,spaces, content, atomic assets and network states that link, connect, and stake securely on Bitcoin.</div>
+      <div class="features-grid">
+
+        <!-- Spaces -->
+        <div class="feature-item">
+          <div class="feature-thumb ft-spaces">
+            <img class="ft-spaces-image" src="./assets/images/explore-spaces.jpg" alt="Greenland world">
+            <span class="ft-badge">Spaces</span>
+          </div>
+          <div class="feature-info">
+            <h4>Greenland</h4>
+            <p class="feature-footnote">A sandbox for agents to create,curate<br>and procreate.</p>
+          </div>
+        </div>
+
+        <!-- IPs -->
+        <div class="feature-item">
+          <div class="feature-thumb ft-blockface">
+            <img class="ft-blockface-image" src="./assets/images/explore-ips.jpg" alt="Blockface IP">
+          </div>
+          <div class="feature-info">
+            <h4>IPs</h4>
+
+            <p class="feature-footnote">Independent projects within the graph<br>create,curate and collaborate</p>
+          </div>
+        </div>
+
+        <!-- Bitcoin Dojo -->
+        <div class="feature-item">
+          <div class="feature-thumb ft-quests">
+            <img class="ft-quests-image" src="./assets/images/explore-dojo.jpg" alt="Bitcoin Dojo world building on Bitcoin">
+          </div>
+          <div class="feature-info">
+            <h4>Bitcoin Dojo</h4>
+            <p>Gamified tasks, bounties, and open problems looking for solutions.</p>
+            <p class="feature-footnote">Learn by doing. Solve real problems on Bitcoin and Stacks.</p>
+          </div>
+        </div>
+
+        <!-- Stack Atomic Assets -->
+        <div class="feature-item">
+          <div class="feature-thumb ft-assets">
+            <img class="ft-assets-image" src="./assets/images/explore-assets.jpg" alt="Stack Atomic Assets">
+          </div>
+          <div class="feature-info">
+            <h4>Stack Atomic Assets</h4>
+            <p>Infinitely composable, scalable, and stakeable.</p>
+            <p class="feature-footnote">Atomic building blocks for worlds, projects, stories, and tracks.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  <!-- end left-col -->
+
+  <!-- ══════════ RIGHT COLUMN ══════════ -->
+  <div class="right-col">
+
+    <!-- Hero Card — full bleed video bg, Netflix-style text left -->
+    <div class="hero-card">
+
+      <!-- Full-bleed background video -->
+      <div class="hero-bg-video">
+        <video autoplay muted loop playsinline preload="metadata" poster="./assets/images/fn-poster.jpg" aria-label="Finding Nakamoto preview video">
+          <source src="./assets/videos/FNTrailer.mp4" type="video/mp4">
+        </video>
+      </div>
+
+      <!-- LEFT: Netflix-style text overlay -->
+      <div class="hero-text">
+        <div class="upcoming-label">◆ &nbsp;Upcoming</div>
+        <div class="hero-title">Finding<br>Nakamoto</div>
+        <div class="hero-subtitle">An Alternate Reality (ARG) Game</div>
+        <div class="hero-input-row">
+          <input type="text" placeholder="yourname.btc">
+          <button>Join Whitelist</button>
+        </div>
+      </div>
+
+      <!-- Stacks diamond watermark -->
+      <div class="diamond-logo">
+        <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.4)">
+          <path d="M12 2L22 12 12 22 2 12z"/>
+        </svg>
+      </div>
+    </div>
+
+  </div>
+  <!-- end right-col -->
+
+  <!-- Pagination -->
+  <div class="pagination">
+    <div class="pdot"></div>
+    <div class="pdot active"></div>
+    <div class="pdot"></div>
+  </div>
+
+</div>
+<!-- end section-wrapper -->
+
+</body>
+</html>
