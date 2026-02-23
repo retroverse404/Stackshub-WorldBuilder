@@ -37,6 +37,7 @@ export default function GatesLoginPage() {
     };
   }, []);
 
+
   useEffect(() => {
     if (!ready || !authenticated || forceLogin) return;
     window.location.assign(redirectTarget);
@@ -136,6 +137,12 @@ export default function GatesLoginPage() {
         {errorMessage && (
           <p style={{ marginTop: '8px', fontSize: '13px', color: '#ff9a9a' }}>
             {errorMessage}
+          </p>
+        )}
+        {readyTimeout && (
+          <p style={{ marginTop: '10px', fontSize: '12px', opacity: 0.7, lineHeight: 1.4 }}>
+            Common causes: invalid <code>NEXT_PUBLIC_PRIVY_APP_ID</code>, Privy dashboard domain allowlist
+            missing this origin, or browser extensions blocking embedded auth UI.
           </p>
         )}
       </section>

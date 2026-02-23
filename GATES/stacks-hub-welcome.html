@@ -323,7 +323,7 @@
                 if (explicitBridge) {
                     loginUrl.searchParams.set('privyBridge', explicitBridge);
                 } else if (isLocalHost) {
-                    loginUrl.searchParams.set('privyBridge', 'http://127.0.0.1:3001');
+                    loginUrl.searchParams.set('privyBridge', window.location.protocol + '//' + window.location.hostname + ':3001');
                 } else if (isBtchubDomain) {
                     loginUrl.searchParams.set('privyBridge', 'https://auth.btchub.space');
                 }

@@ -405,7 +405,7 @@
         function getDefaultPrivyBridgeUrl() {
             const hostname = window.location.hostname;
             const isLocalHost = hostname === '127.0.0.1' || hostname === 'localhost';
-            if (isLocalHost) return 'http://127.0.0.1:3001';
+            if (isLocalHost) return window.location.protocol + '//' + hostname + ':3001';
 
             if (hostname === 'btchub.space' || hostname.endsWith('.btchub.space')) {
                 return 'https://auth.btchub.space';
@@ -451,7 +451,8 @@
             const params = new URLSearchParams(window.location.search);
             const queryValue = params.get('websiteBase');
             const storedValue = safeStorageGet('STACKS_WEBSITE_BASE_URL');
-            const fallbackValue = 'http://127.0.0.1:8080';
+            const isHttp = window.location.protocol === 'http:' || window.location.protocol === 'https:';
+            const fallbackValue = isHttp ? window.location.origin : 'http://127.0.0.1:8091';
             const candidate = queryValue || storedValue || fallbackValue;
 
             try {
@@ -501,6 +502,45 @@
             frame.src = bridgeLoginUrl.toString();
             overlay.classList.add('active');
             overlay.setAttribute('aria-hidden', 'false');
+
+            window.clearTimeout(window.__privyFrameReadyTimeout);
+            window.__privyFrameReadyTimeout = window.setTimeout(function () {
+                if (!overlay.classList.contains('active') || !overlay.classList.contains('loading')) return;
+                const loginStatus = document.getElementById('login-status');
+                closePrivyOverlay();
+                if (loginStatus) {
+                    loginStatus.textContent = 'Embedded login blocked. Opening secure login page...';
+                }
+                try {
+                    const topLevelLoginUrl = new URL('/gates-login', privyBridgeBaseUrl);
+                    topLevelLoginUrl.searchParams.set('redirect', scrollerUrl.toString());
+                    topLevelLoginUrl.searchParams.set('forceLogin', '1');
+                    window.location.assign(topLevelLoginUrl.toString());
+                } catch (error) {
+                    if (loginStatus) {
+                        loginStatus.textContent = 'Privy login did not load. Check allowed domains and disable blockers.';
+                    }
+                }
+            }, 7000);
+        }
+
+        function openPrivyTopLevelLogin() {
+            const baseForScroller = window.location.protocol === 'file:' ? getWebsiteBaseUrl() : window.location.href;
+            const scrollerUrl = new URL('../PAGES/single-scroll.html', baseForScroller);
+            const privyBridgeBaseUrl = getPrivyBridgeBaseUrl();
+
+            if (!privyBridgeBaseUrl) {
+                const loginStatus = document.getElementById('login-status');
+                if (loginStatus) {
+                    loginStatus.textContent = 'Privy login service is unavailable. Start the Privy app on :3001.';
+                }
+                return;
+            }
+
+            const topLevelLoginUrl = new URL('/gates-login', privyBridgeBaseUrl);
+            topLevelLoginUrl.searchParams.set('redirect', scrollerUrl.toString());
+            topLevelLoginUrl.searchParams.set('forceLogin', '1');
+            window.location.assign(topLevelLoginUrl.toString());
         }
 
         function closePrivyOverlay() {
@@ -511,6 +551,7 @@
             overlay.classList.remove('loading');
             overlay.setAttribute('aria-hidden', 'true');
             frame.src = 'about:blank';
+            window.clearTimeout(window.__privyFrameReadyTimeout);
         }
 
         function handleLoginClick(event) {
@@ -519,9 +560,9 @@
             }
             const loginStatus = document.getElementById('login-status');
             if (loginStatus) {
-                loginStatus.textContent = 'Opening secure login...';
+                loginStatus.textContent = 'Opening secure login page...';
             }
-            openPrivyOverlay();
+            openPrivyTopLevelLogin();
         }
 
         document.addEventListener('DOMContentLoaded', function () {
@@ -554,12 +595,22 @@
                 });
             }
 
+            const frame = document.getElementById('privy-overlay-frame');
+            if (frame) {
+                frame.addEventListener('error', function () {
+                    if (loginStatus) {
+                        loginStatus.textContent = 'Privy iframe failed to load. Verify bridge URL and browser blockers.';
+                    }
+                });
+            }
+
             window.addEventListener('message', function (event) {
                 const allowedOrigin = getPrivyBridgeBaseUrl();
                 if (!allowedOrigin || event.origin !== allowedOrigin) return;
 
                 const data = event.data || {};
                 if (data.type === 'STACKS_PRIVY_FRAME_READY') {
+                    window.clearTimeout(window.__privyFrameReadyTimeout);
                     const overlayNode = document.getElementById('privy-overlay');
                     if (overlayNode) {
                         overlayNode.classList.remove('loading');
